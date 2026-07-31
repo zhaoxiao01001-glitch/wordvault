@@ -85,6 +85,22 @@
     animation:voicering .6s ease-in-out infinite; }
   @keyframes voicering { 0%,100%{box-shadow:0 0 0 0 rgba(96,165,250,.3)} 50%{box-shadow:0 0 0 10px rgba(96,165,250,0)} }
   .card-hint { font-size:11px; color:var(--text-dim); opacity:.4; margin-top:8px; }
+  .spell-area { width:100%; max-width:260px; margin-top:10px; }
+  .spell-input { width:100%; padding:10px 14px; background:rgba(255,255,255,0.05); border:2px solid var(--border);
+    border-radius:10px; color:var(--text); font-size:18px; text-align:center; outline:none;
+    font-family:inherit; letter-spacing:1px; transition:border-color .2s; }
+  .spell-input:focus { border-color:var(--purple); }
+  .spell-input.correct { border-color:var(--green); background:rgba(52,211,153,0.08); }
+  .spell-input.wrong { border-color:var(--red); background:rgba(239,68,68,0.08); animation:shake .4s; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+  .spell-feedback { font-size:12px; margin-top:6px; min-height:18px; }
+  .spell-feedback.ok { color:var(--green); }
+  .spell-feedback.err { color:var(--red); }
+  .spell-feedback.show { color:var(--amber); }
+  .spell-btn { margin-top:8px; padding:8px 24px; border-radius:10px; border:none;
+    background:var(--purple); color:#fff; font-size:14px; font-weight:600; cursor:pointer; }
+  .spell-btn:active { opacity:.8; }
+  .spell-retry { font-size:11px; color:var(--text-dim); margin-top:4px; }
 
   .btn-voice-sm { width:26px; height:26px; border-radius:50%; border:1px solid var(--border);
     background:rgba(96,165,250,0.04); color:var(--blue); font-size:11px; cursor:pointer;
@@ -9645,8 +9661,8 @@ function switchTab(name){
 
 function getPosClass(pos){if(!pos)return'other';var p=pos.replace('.','');return ['n','v','adj','adv','prep','conj','pron','art','int'].indexOf(p)>=0?p:'other';}
 
-// ═══ LEARN MODE ═══
-var learnCur=null;
+// ═══ LEARN MODE with SPELLING ═══
+var learnCur=null;var learnAttempts=0;
 function renderLearn(){
   var w=load();var td=getTodayReviewed();
   var fresh=w.filter(function(x){return x.level===0 && x.timesReviewed===0});
@@ -9654,16 +9670,41 @@ function renderLearn(){
   shuffle(fresh);var pool=fresh.slice(0,learnDaily);
   var doneCount=pool.filter(function(x){return td.indexOf(x.en)>=0}).length;
   if(doneCount>=pool.length){document.getElementById('learn').innerHTML='<div class="done-state"><div class="emoji">🎉</div><h3>今日新词学完了！</h3><p>已学 '+doneCount+'/'+pool.length+' 个</p></div>';return;}
-  learnCur=pool[doneCount];
+  learnCur=pool[doneCount];learnAttempts=0;
   var dots='';for(var i=0;i<pool.length;i++){var cls='dot';if(i<doneCount)cls+=' done';if(i===doneCount)cls+=' cur';dots+='<div class="'+cls+'"></div>';}
   var pc=getPosClass(learnCur.pos);
   var el=document.getElementById('learn');
-  el.innerHTML='<div class="progress"><div class="n">'+(doneCount+1)+' / '+pool.length+'</div><div class="l">今日新词</div></div><div class="dots">'+dots+'</div><div class="card-scene"><div class="card-wrap"><div class="card" id="lfc" onclick="document.getElementById(\'lfc\').classList.toggle(\'flipped\')"><div class="card-face card-front"><span class="card-pos '+pc+'">'+(learnCur.pos||'')+'</span><div class="card-word">'+learnCur.en+'</div><div class="card-phonetic">'+(learnCur.phonetic||'')+'</div><button class="btn-voice" id="lvc" onclick="speak(\''+learnCur.en.replace(/'/g,"\\'")+'\',\'lvc\',event)">🔊</button><div class="card-hint">点击卡片查看释义</div></div><div class="card-face card-back"><div class="card-zh-main">'+learnCur.zh+'</div>'+(learnCur.example?'<div class="card-ex-block"><div class="card-ex-en">'+learnCur.example.replace(/"/g,'&quot;')+' <button class="btn-voice-sm" data-text="'+learnCur.example.replace(/"/g,'&quot;')+'" onclick="speakSm(this,event)">🔊</button></div>'+(learnCur.example_zh?'<div class="card-ex-zh">'+learnCur.example_zh+'</div>':'')+'</div>':'')+'</div></div></div></div><div class="actions"><button class="act act-yes act-learn" onclick="learnAnswer()">✅ 学会了</button></div>';
+  el.innerHTML='<div class="progress"><div class="n">'+(doneCount+1)+' / '+pool.length+'</div><div class="l">今日新词</div></div><div class="dots">'+dots+'</div><div class="card-scene"><div class="card-wrap"><div class="card flipped" id="lfc" onclick="document.getElementById(\'lfc\').classList.toggle(\'flipped\')"><div class="card-face card-front"><span class="card-pos '+pc+'">'+(learnCur.pos||'')+'</span><div class="card-word">'+learnCur.en+'</div><div class="card-phonetic">'+(learnCur.phonetic||'')+'</div><button class="btn-voice" id="lvc" onclick="speak(\''+learnCur.en.replace(/'/g,"\\'")+'\',\'lvc\',event)">🔊</button><div class="card-hint">点击卡片查看释义</div></div><div class="card-face card-back"><div class="card-zh-main">'+learnCur.zh+'</div>'+(learnCur.example?'<div class="card-ex-block"><div class="card-ex-en">'+learnCur.example.replace(/"/g,'&quot;')+' <button class="btn-voice-sm" data-text="'+learnCur.example.replace(/"/g,'&quot;')+'" onclick="speakSm(this,event)">🔊</button></div>'+(learnCur.example_zh?'<div class="card-ex-zh">'+learnCur.example_zh+'</div>':'')+'</div>':'')+'<div class="spell-area"><input class="spell-input" id="si" placeholder="输入英文拼写..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key===\'Enter\')learnCheck()"><div class="spell-feedback" id="sf"></div><button class="spell-btn" onclick="learnCheck()">✅ 检查</button></div></div></div></div></div><div class="actions"><button class="act act-yes" onclick="learnSkip()" style="opacity:.5;font-size:13px;">跳过此词 ▶</button></div>';
+  setTimeout(function(){var inp=document.getElementById('si');if(inp)inp.focus();},300);
 }
-function learnAnswer(){
+function learnCheck(){
+  if(!learnCur)return;
+  var inp=document.getElementById('si');var fb=document.getElementById('sf');if(!inp||!fb)return;
+  var typed=inp.value.trim();
+  if(typed.toLowerCase()===learnCur.en.toLowerCase()){
+    inp.classList.add('correct');fb.className='spell-feedback ok';fb.textContent='✅ 正确！';
+    setTimeout(function(){learnDone();},600);
+  }else{
+    learnAttempts++;inp.classList.add('wrong');fb.className='spell-feedback err';
+    if(learnAttempts>=3){
+      fb.textContent='答案是: '+learnCur.en;
+      fb.className='spell-feedback show';inp.value=learnCur.en;inp.disabled=true;inp.classList.add('correct');
+      var btn=document.querySelector('.spell-btn');if(btn){btn.textContent='知道了';btn.onclick=learnDone;}
+    }else{
+      fb.textContent='❌ 再试一次 ('+learnAttempts+'/3)';inp.value='';
+      setTimeout(function(){inp.classList.remove('wrong');inp.focus();},400);
+    }
+  }
+}
+function learnDone(){
   if(!learnCur)return;var w=load();var wi=w.find(function(x){return x.en===learnCur.en});if(!wi)return;
   wi.level=1;wi.timesReviewed=1;wi.nextReview=Date.now()+SPACED[1]*864e5;
-  markToday(wi.en);save(w);learnCur=null;renderLearn();
+  markToday(wi.en);save(w);learnCur=null;learnAttempts=0;renderLearn();
+}
+function learnSkip(){
+  if(!learnCur)return;var w=load();var wi=w.find(function(x){return x.en===learnCur.en});if(!wi)return;
+  wi.level=1;wi.timesReviewed=1;wi.nextReview=Date.now()+SPACED[1]*864e5;
+  markToday(wi.en);save(w);learnCur=null;learnAttempts=0;renderLearn();
 }
 
 // ═══ REVIEW MODE ═══
