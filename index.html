@@ -9680,7 +9680,7 @@ function renderLearn(){
 function learnCheck(){
   if(!learnCur)return;
   var inp=document.getElementById('si');var fb=document.getElementById('sf');if(!inp||!fb)return;
-  var typed=inp.value.trim();
+  var typed=inp.value.trim().replace(/\s+/g,' ');
   if(typed.toLowerCase()===learnCur.en.toLowerCase()){
     inp.classList.add('correct');fb.className='spell-feedback ok';fb.textContent='✅ 正确！';
     setTimeout(function(){learnDone();},600);
@@ -9691,7 +9691,7 @@ function learnCheck(){
       fb.className='spell-feedback show';inp.value=learnCur.en;inp.disabled=true;inp.classList.add('correct');
       var btn=document.querySelector('.spell-btn');if(btn){btn.textContent='知道了';btn.onclick=learnDone;}
     }else{
-      fb.textContent='❌ 再试一次 ('+learnAttempts+'/3)';inp.value='';
+      fb.textContent='❌ 你输入了: '+typed+' · 再试一次 ('+learnAttempts+'/3)';inp.value='';
       setTimeout(function(){inp.classList.remove('wrong');inp.focus();},400);
     }
   }
