@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>WordVault · 科学记单词</title>
+<title>霹雳王 · 科学记单词</title>
 <style>
   :root {
     --bg: #0d0d1a; --surface: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.06);
@@ -142,6 +142,11 @@
     background:var(--surface); color:var(--text-dim); font-size:12px; cursor:pointer;
     appearance:none; -webkit-appearance:none; outline:none; }
   .word-scroll { flex:1; overflow-y:auto; }
+  .pager { display:flex; align-items:center; justify-content:center; gap:10px; padding:10px 0 4px; }
+  .pager-btn { padding:6px 16px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text-dim); font-size:12px; cursor:pointer; transition:all .15s; }
+  .pager-btn:hover { background:var(--surface-hover); color:var(--text); }
+  .pager-btn:disabled { opacity:.3; cursor:default; }
+  .pager-info { font-size:11px; color:var(--text-dim); }
   .pos-title { font-size:11px; font-weight:600; color:var(--text-dim); padding:6px 4px 3px;
     letter-spacing:.5px; }
   .word-item { display:flex; align-items:flex-start; justify-content:space-between;
@@ -186,7 +191,7 @@
 </head>
 <body>
 <div class="app">
-  <div class="top-bar"><h1>📚 WordVault</h1><button class="top-btn" onclick="toggleSettings()">⚙️</button></div>
+  <div class="top-bar"><h1>⚡ 霹雳王</h1><button class="top-btn" onclick="toggleSettings()">⚙️</button></div>
   <div class="settings-panel" id="settings">
     <div class="setting-row"><span class="setting-label">🎤 朗读声音</span><select class="setting-select" id="so-voice" onchange="onVoiceChange(this.value)"></select></div>
     <div class="setting-row"><span class="setting-label">🎵 朗读语速</span><select class="setting-select" id="so-rate" onchange="onRateChange(this.value)"><option value="0.7">慢</option><option value="0.85">稍慢</option><option value="1.0" selected>正常</option><option value="1.15">稍快</option><option value="1.3">快</option></select></div>
@@ -201,8 +206,13 @@
   <div class="pane on" id="pane-learn"><div id="learn"></div></div>
   <div class="pane" id="pane-review"><div id="review"></div></div>
   <div class="pane" id="pane-words">
-    <div class="list-toolbar"><input class="search-box" placeholder="🔍 搜索英文或中文..." oninput="renderList()" id="sq"><select class="pos-filter" id="pf" onchange="renderList()"><option value="all">全部</option><option value="int">感叹词</option><option value="art">冠词</option><option value="pron">代词</option><option value="conj">连词</option><option value="prep">介词</option><option value="adv">副词</option><option value="v">动词</option><option value="adj">形容词</option><option value="n">名词</option></select></div>
+    <div class="list-toolbar"><input class="search-box" placeholder="🔍 搜索英文或中文..." oninput="renderList(true)" id="sq"><select class="pos-filter" id="pf" onchange="renderList(true)"><option value="all">全部</option><option value="int">感叹词</option><option value="art">冠词</option><option value="pron">代词</option><option value="conj">连词</option><option value="prep">介词</option><option value="adv">副词</option><option value="v">动词</option><option value="adj">形容词</option><option value="n">名词</option></select></div>
     <div class="word-scroll" id="list"></div>
+    <div class="pager" id="pager">
+      <button class="pager-btn" onclick="prevPage()">◀ 上一页</button>
+      <span class="pager-info" id="page-info"></span>
+      <button class="pager-btn" onclick="nextPage()">下一页 ▶</button>
+    </div>
   </div>
   <div class="pane" id="pane-add">
     <div class="add-field"><label>英文单词 *</label><input placeholder="serendipity" id="ae"></div>
@@ -9676,24 +9686,53 @@ function reviewAnswer(type){
   save(w);reviewCur=null;renderReview();
 }
 
-// ═══ WORD LIST ═══
-function renderList(){
+// ═══ WORD LIST with PAGINATION ═══
+var listPage=1;var PER_PAGE=50;
+function renderList(resetPage){
+  if(resetPage)listPage=1;
   var w=load();var q=(document.getElementById('sq')||{}).value||'';q=q.toLowerCase();
   var pf=(document.getElementById('pf')||{}).value||'all';
   var f=q?w.filter(function(x){return x.en.toLowerCase().indexOf(q)>-1||x.zh.indexOf(q)>-1}):w;
   if(pf!=='all'){f=f.filter(function(x){return (x.pos||'').replace('.','')===pf});}
+
+  // Build flat list with POS info
   var groups={};f.forEach(function(x,i){var p=(x.pos||'?').replace('.','');if(!groups[p])groups[p]=[];groups[p].push({w:x,idx:w.indexOf(x)});});
-  var html='';
+  var flatItems=[];
   POS_ORDER.forEach(function(p){
     if(!groups[p]||groups[p].length===0)return;
-    html+='<div class="pos-title">'+POS_LABELS[p]+' ('+groups[p].length+')</div>';
-    groups[p].forEach(function(item){var x=item.w,i=item.idx;
-      html+='<div class="word-item"><div style="min-width:0;"><div class="en">'+x.en+'<span class="ph">'+(x.phonetic||'')+'</span></div><div class="zh">'+x.zh+'</div>'+(x.example?'<div class="ex-line">'+x.example+(x.example_zh?' · '+x.example_zh:'')+'</div>':'')+'</div><div class="meta"><span class="word-tag l'+x.level+'">'+LVL[x.level]+'</span><button class="word-del" onclick="delWord('+i+')">✕</button></div></div>';
-    });
+    flatItems.push({type:'header',pos:p,count:groups[p].length});
+    groups[p].forEach(function(item){flatItems.push({type:'word',data:item});});
   });
+
+  var totalPages=Math.max(1,Math.ceil((flatItems.length-POS_ORDER.filter(function(p){return groups[p]}).length)/PER_PAGE));
+  if(listPage>totalPages)listPage=totalPages;
+  if(listPage<1)listPage=1;
+
+  // Only show words, headers appear when needed
+  var start=(listPage-1)*PER_PAGE;var end=start+PER_PAGE;
+  var wordCount=0;var html='';var lastPos='';
+  for(var i=0;i<flatItems.length;i++){
+    var item=flatItems[i];
+    if(item.type==='header'){lastPos=item.pos;continue}
+    if(wordCount>=start&&wordCount<end){
+      // Show header if first word of this POS in this page
+      if(wordCount===start||flatItems[i-1]&&flatItems[i-1].type==='header'){
+        html+='<div class="pos-title">'+POS_LABELS[lastPos]+' ('+groups[lastPos].length+')</div>';
+      }
+      var x=item.data.w,idx=item.data.idx;
+      html+='<div class="word-item"><div style="min-width:0;"><div class="en">'+x.en+'<span class="ph">'+(x.phonetic||'')+'</span></div><div class="zh">'+x.zh+'</div>'+(x.example?'<div class="ex-line">'+x.example+(x.example_zh?' · '+x.example_zh:'')+'</div>':'')+'</div><div class="meta"><span class="word-tag l'+x.level+'">'+LVL[x.level]+'</span><button class="word-del" onclick="delWord('+idx+')">✕</button></div></div>';
+    }
+    wordCount++;
+  }
   if(!html)html='<div class="done-state"><div class="emoji">📭</div><h3>没有匹配的单词</h3></div>';
   document.getElementById('list').innerHTML=html;
+
+  // Update pager
+  var pi=document.getElementById('page-info');if(pi)pi.textContent=listPage+' / '+totalPages;
+  var btns=document.querySelectorAll('.pager-btn');if(btns.length>=2){btns[0].disabled=listPage<=1;btns[1].disabled=listPage>=totalPages;}
 }
+function prevPage(){if(listPage>1){listPage--;renderList();document.getElementById('list').scrollTop=0;}}
+function nextPage(){listPage++;renderList();document.getElementById('list').scrollTop=0;}
 function delWord(i){if(!confirm('删除？'))return;var w=load();if(learnCur&&w[i]&&w[i].en===learnCur.en)learnCur=null;if(reviewCur&&w[i]&&w[i].en===reviewCur.en)reviewCur=null;w.splice(i,1);save(w);renderList();renderLearn();renderReview();}
 
 // ═══ ADD ═══
