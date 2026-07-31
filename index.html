@@ -209,9 +209,12 @@
     <div class="list-toolbar"><input class="search-box" placeholder="🔍 搜索英文或中文..." oninput="renderList(true)" id="sq"><select class="pos-filter" id="pf" onchange="renderList(true)"><option value="all">全部</option><option value="int">感叹词</option><option value="art">冠词</option><option value="pron">代词</option><option value="conj">连词</option><option value="prep">介词</option><option value="adv">副词</option><option value="v">动词</option><option value="adj">形容词</option><option value="n">名词</option></select></div>
     <div class="word-scroll" id="list"></div>
     <div class="pager" id="pager">
-      <button class="pager-btn" onclick="prevPage()">◀ 上一页</button>
+      <button class="pager-btn" onclick="prevPage()">◀</button>
       <span class="pager-info" id="page-info"></span>
-      <button class="pager-btn" onclick="nextPage()">下一页 ▶</button>
+      <button class="pager-btn" onclick="nextPage()">▶</button>
+      <span class="pager-info" style="margin-left:6px;">跳至</span>
+      <input class="setting-input" type="number" min="1" id="jump-page" style="width:44px;font-size:11px;padding:4px 6px;" onkeydown="if(event.key==='Enter')jumpPage()">
+      <button class="pager-btn" onclick="jumpPage()" style="padding:4px 10px;font-size:11px;">GO</button>
     </div>
   </div>
   <div class="pane" id="pane-add">
@@ -9666,7 +9669,7 @@ function learnAnswer(){
 // ═══ REVIEW MODE ═══
 var reviewCur=null;
 function renderReview(){
-  var w=load();var d=due(w);d=d.filter(function(x){return x.level>0});
+  var w=load();var d=due(w);d=d.filter(function(x){return x.level>0 && x.timesReviewed>0});
   if(d.length===0){
     var m=w.filter(function(x){return x.level===5}).length;
     document.getElementById('review').innerHTML='<div class="done-state"><div class="emoji">🎉</div><h3>复习全部完成！</h3><p>已掌握 '+m+' 个词</p><div class="done-stats"><div class="done-stat"><div class="n" style="color:var(--green)">'+m+'</div><div class="l">已掌握</div></div><div class="done-stat"><div class="n" style="color:var(--purple)">'+streak()+'</div><div class="l">连续天</div></div><div class="done-stat"><div class="n" style="color:var(--blue)">'+w.length+'</div><div class="l">总词汇</div></div></div></div>';
@@ -9687,7 +9690,7 @@ function reviewAnswer(type){
 }
 
 // ═══ WORD LIST with PAGINATION ═══
-var listPage=1;var PER_PAGE=50;
+var listPage=1;var PER_PAGE=30;
 function renderList(resetPage){
   if(resetPage)listPage=1;
   var w=load();var q=(document.getElementById('sq')||{}).value||'';q=q.toLowerCase();
@@ -9729,10 +9732,12 @@ function renderList(resetPage){
 
   // Update pager
   var pi=document.getElementById('page-info');if(pi)pi.textContent=listPage+' / '+totalPages;
-  var btns=document.querySelectorAll('.pager-btn');if(btns.length>=2){btns[0].disabled=listPage<=1;btns[1].disabled=listPage>=totalPages;}
+  var btns=document.querySelectorAll('.pager-btn');if(btns.length>=3){btns[0].disabled=listPage<=1;btns[1].disabled=listPage>=totalPages;}
+  var jp=document.getElementById('jump-page');if(jp){jp.max=totalPages;jp.value='';}
 }
 function prevPage(){if(listPage>1){listPage--;renderList();document.getElementById('list').scrollTop=0;}}
 function nextPage(){listPage++;renderList();document.getElementById('list').scrollTop=0;}
+function jumpPage(){var jp=document.getElementById('jump-page');var n=parseInt(jp.value);if(n>=1){listPage=n;renderList();document.getElementById('list').scrollTop=0;}}
 function delWord(i){if(!confirm('删除？'))return;var w=load();if(learnCur&&w[i]&&w[i].en===learnCur.en)learnCur=null;if(reviewCur&&w[i]&&w[i].en===reviewCur.en)reviewCur=null;w.splice(i,1);save(w);renderList();renderLearn();renderReview();}
 
 // ═══ ADD ═══
