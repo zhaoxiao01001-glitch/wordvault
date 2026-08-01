@@ -9593,8 +9593,9 @@ function load(){let w=ls('wv4_words');if(!w){w=JSON.parse(JSON.stringify(EMBEDDE
 function save(w){ls('wv4_words',w)}
 function streak(){var d=ls('wv4_streak')||{d:'',n:0};var t=dateKey();if(d.d===t)return d.n;var y=dateKey(-1);var n=d.d===y?d.n+1:1;ls('wv4_streak',{d:t,n});return n}
 function dateKey(off){var d=new Date();if(off)d.setDate(d.getDate()+off);return d.toISOString().slice(0,10)}
-function due(w){return w.filter(function(x){return x.nextReview<=Date.now()})}
+function due(w){var today=dateKey();return w.filter(function(x){var rd=new Date(x.nextReview).toISOString().slice(0,10);return rd<=today})}
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function nextDay(days){var d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+days);return d.getTime()}
 
 // Daily tracking
 function todayKey(){return 'wv4_today_'+dateKey()}
@@ -9698,12 +9699,7 @@ function learnCheck(){
 }
 function learnDone(){
   if(!learnCur)return;var w=load();var wi=w.find(function(x){return x.en===learnCur.en});if(!wi)return;
-  wi.level=1;wi.timesReviewed=1;wi.nextReview=Date.now()+SPACED[1]*864e5;
-  markToday(wi.en);save(w);learnCur=null;learnAttempts=0;renderLearn();
-}
-function learnSkip(){
-  if(!learnCur)return;var w=load();var wi=w.find(function(x){return x.en===learnCur.en});if(!wi)return;
-  wi.level=1;wi.timesReviewed=1;wi.nextReview=Date.now()+SPACED[1]*864e5;
+  wi.level=1;wi.timesReviewed=1;wi.nextReview=nextDay(SPACED[1]);\n  markToday(wi.en);save(w);learnCur=null;learnAttempts=0;renderLearn();\n}\nfunction learnSkip(){\n  if(!learnCur)return;var w=load();var wi=w.find(function(x){return x.en===learnCur.en});if(!wi)return;\n  wi.level=1;wi.timesReviewed=1;wi.nextReview=nextDay(SPACED[1]);
   markToday(wi.en);save(w);learnCur=null;learnAttempts=0;renderLearn();
 }
 
@@ -9726,7 +9722,7 @@ function renderReview(){
 function reviewAnswer(type){
   if(!reviewCur)return;var w=load();var wi=w.find(function(x){return x.en===reviewCur.en});if(!wi)return;
   if(type===0)wi.level=1;else if(type===1){} else wi.level=Math.min(5,wi.level+1);
-  wi.timesReviewed++;wi.nextReview=Date.now()+SPACED[wi.level]*864e5;
+  wi.timesReviewed++;wi.nextReview=nextDay(SPACED[wi.level]);
   save(w);reviewCur=null;renderReview();
 }
 
