@@ -9699,7 +9699,12 @@ function learnCheck(){
 }
 function learnDone(){
   if(!learnCur)return;var w=load();var wi=w.find(function(x){return x.en===learnCur.en});if(!wi)return;
-  wi.level=1;wi.timesReviewed=1;wi.nextReview=nextDay(SPACED[1]);\n  markToday(wi.en);save(w);learnCur=null;learnAttempts=0;renderLearn();\n}\nfunction learnSkip(){\n  if(!learnCur)return;var w=load();var wi=w.find(function(x){return x.en===learnCur.en});if(!wi)return;\n  wi.level=1;wi.timesReviewed=1;wi.nextReview=nextDay(SPACED[1]);
+  wi.level=1;wi.timesReviewed=1;wi.nextReview=nextDay(SPACED[1]);
+  markToday(wi.en);save(w);learnCur=null;learnAttempts=0;renderLearn();
+}
+function learnSkip(){
+  if(!learnCur)return;var w=load();var wi=w.find(function(x){return x.en===learnCur.en});if(!wi)return;
+  wi.level=1;wi.timesReviewed=1;wi.nextReview=nextDay(SPACED[1]);
   markToday(wi.en);save(w);learnCur=null;learnAttempts=0;renderLearn();
 }
 
