@@ -9926,7 +9926,7 @@ function init(){
   }
   renderLearn();
 }
-console.log('Calling streak+init');try{streak();init();console.log('Init complete');}catch(e){console.error('Init error:',e);document.body.innerHTML+='<div style=color:red;padding:20px>Error: '+e.message+'</div>';}
+document.getElementById('learn').innerHTML='<div class=done-state><div class=emoji>⏳</div><h3>加载中...</h3></div>';try{streak();init();}catch(e){document.getElementById('learn').innerHTML='<div class=done-state><div class=emoji>❌</div><h3>出错了</h3><p>'+e.message+'</p></div>';}
 </script>
 </body>
 </html>
