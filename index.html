@@ -123,6 +123,10 @@
   .review-bar { height:3px; background:var(--surface); border-radius:3px; margin-bottom:4px; overflow:hidden; }
   .review-fill { height:100%; background:linear-gradient(90deg,var(--red),var(--amber),var(--green)); border-radius:3px; transition:width .3s; }
   .review-stats { display:flex; justify-content:space-between; font-size:10px; color:var(--text-dim); }
+  .review-wordlist { margin:8px 0; max-height:120px; overflow-y:auto; display:flex; flex-wrap:wrap; gap:4px; }
+  .review-worditem { font-size:10px; padding:3px 8px; border-radius:8px; background:var(--surface); color:var(--text-dim); border:1px solid var(--border); white-space:nowrap; }
+  .review-worditem.current { background:rgba(167,139,250,0.15); color:var(--purple); border-color:rgba(167,139,250,0.3); font-weight:600; }
+  .review-worditem.done { opacity:0.4; text-decoration:line-through; }
 
   /* Action buttons */
   .actions { display:flex; gap:8px; padding:14px 0 20px; }
@@ -9784,20 +9788,35 @@ function renderReview(){
   reviewCur=reviewPool[0];
   var pc=getPosClass(reviewCur.pos);
   var el=document.getElementById('review');
-  el.innerHTML='<div class="progress"><div class="n">1 / '+reviewPool.length+'</div><div class="l">今日复习 · '+LVL[reviewCur.level]+'</div></div><div class="card-scene"><div class="card-wrap"><div class="card" id="rfc" onclick="document.getElementById(\'rfc\').classList.toggle(\'flipped\')"><div class="card-face card-front"><span class="card-pos '+pc+'">'+(reviewCur.pos||'')+'</span><div class="card-word">'+reviewCur.en+'</div><div class="card-phonetic">'+(reviewCur.phonetic||'')+'</div><button class="btn-voice" id="rvc" onclick="speak(\''+reviewCur.en.replace(/'/g,"\\'")+'\',\'rvc\',event)">🔊</button><div class="card-hint">点击卡片查看释义</div></div><div class="card-face card-back"><div class="card-zh-main">'+reviewCur.zh+'</div>'+(reviewCur.example?'<div class="card-ex-block"><div class="card-ex-en">'+reviewCur.example.replace(/"/g,'&quot;')+' <button class="btn-voice-sm" data-text="'+reviewCur.example.replace(/"/g,'&quot;')+'" onclick="speakSm(this,event)">🔊</button></div>'+(reviewCur.example_zh?'<div class="card-ex-zh">'+reviewCur.example_zh+'</div>':'')+'</div>':'')+'<div class="card-meta">复习 '+reviewCur.timesReviewed+' 次 · '+LVL[reviewCur.level]+'</div><div class="spell-area" onclick="event.stopPropagation()" style="margin-top:8px;"><input class="spell-input" id="rsi" placeholder="输入英文拼写..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key===\'Enter\')reviewSpellCheck()"><div class="spell-feedback" id="rsf"></div><button class="spell-btn" onclick="reviewSpellCheck()">✅ 检查</button></div></div></div></div></div><div class="actions"><button class="act act-no" onclick="reviewAnswer(0)">不认识</button><button class="act act-maybe" onclick="reviewAnswer(1)">模糊</button><button class="act act-yes" onclick="reviewAnswer(2)">认识</button></div>';
+  el.innerHTML='<div class="progress"><div class="n">1 / '+reviewPool.length+'</div><div class="l">今日复习 · '+LVL[reviewCur.level]+'</div></div><div class="card-scene"><div class="card-wrap"><div class="card" id="rfc" onclick="document.getElementById(\'rfc\').classList.toggle(\'flipped\')"><div class="card-face card-front"><span class="card-pos '+pc+'">'+(reviewCur.pos||'')+'</span><div class="card-word">'+reviewCur.en+'</div><div class="card-phonetic">'+(reviewCur.phonetic||'')+'</div><button class="btn-voice" id="rvc" onclick="speak(\''+reviewCur.en.replace(/'/g,"\\'")+'\',\'rvc\',event)">🔊</button><div class="card-hint">点击卡片查看释义</div></div><div class="card-face card-back"><div class="card-zh-main">'+reviewCur.zh+'</div>'+(reviewCur.example?'<div class="card-ex-block"><div class="card-ex-en">'+reviewCur.example.replace(/"/g,'&quot;')+' <button class="btn-voice-sm" data-text="'+reviewCur.example.replace(/"/g,'&quot;')+'" onclick="speakSm(this,event)">🔊</button></div>'+(reviewCur.example_zh?'<div class="card-ex-zh">'+reviewCur.example_zh+'</div>':'')+'</div>':'')+'<div class="card-meta">复习 '+reviewCur.timesReviewed+' 次 · '+LVL[reviewCur.level]+'</div><div class="spell-area" onclick="event.stopPropagation()" style="margin-top:8px;"><input class="spell-input" id="rsi" placeholder="输入英文拼写..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key===\'Enter\')reviewSpellCheck()"><div class="spell-feedback" id="rsf"></div><button class="spell-btn" onclick="reviewSpellCheck()">✅ 检查</button></div></div></div></div></div><div class="review-wordlist" id="rwl"></div><div class="actions"><button class="act act-no" onclick="reviewAnswer(0)">不认识</button><button class="act act-maybe" onclick="reviewAnswer(1)">模糊</button><button class="act act-yes" onclick="reviewAnswer(2)">认识</button></div>';
 }
+function buildReviewWordlist(){
+  var html='';var done=getTodayReviewed();
+  for(var i=0;i<reviewPool.length;i++){
+    var w=reviewPool[i];var cls='review-worditem';
+    if(i===0)cls+=' current';
+    if(done.indexOf(w.en)>=0)cls+=' done';
+    var lvlTag=['','1d','3d','7d','16d','OK'][w.level]||'?';
+    html+='<span class="'+cls+'">'+w.en+' <span style="opacity:0.5">'+lvlTag+'</span></span>';
+  }
+  return html;
+}
+function updateReviewWordlist(){
+  var el=document.getElementById('rwl');if(el)el.innerHTML=buildReviewWordlist();
+}
+
 function reviewAnswer(type){
   if(!reviewCur)return;var w=load();var wi=w.find(function(x){return x.en===reviewCur.en});if(!wi)return;
   if(type===0)wi.level=1;else if(type===1){} else wi.level=Math.min(5,wi.level+1);
   wi.timesReviewed++;wi.nextReview=nextDay(SPACED[wi.level]);reviewAttempts=0;recordHistory('review',type);addReviewedWord(wi.en,type);
   save(w);
   // Remove from pool and show next
-  reviewPool.shift();
+  reviewPool.shift();updateReviewWordlist();
   if(reviewPool.length>0){
     reviewCur=reviewPool[0];
     var pc=getPosClass(reviewCur.pos);
     var el=document.getElementById('review');
-    el.innerHTML='<div class="progress"><div class="n">'+(reviewDaily-reviewPool.length+1)+' / '+reviewDaily+'</div><div class="l">今日复习 · '+LVL[reviewCur.level]+'</div></div><div class="card-scene"><div class="card-wrap"><div class="card" id="rfc" onclick="document.getElementById(\'rfc\').classList.toggle(\'flipped\')"><div class="card-face card-front"><span class="card-pos '+pc+'">'+(reviewCur.pos||'')+'</span><div class="card-word">'+reviewCur.en+'</div><div class="card-phonetic">'+(reviewCur.phonetic||'')+'</div><button class="btn-voice" id="rvc" onclick="speak(\''+reviewCur.en.replace(/'/g,"\\'")+'\',\'rvc\',event)">🔊</button><div class="card-hint">点击卡片查看释义</div></div><div class="card-face card-back"><div class="card-zh-main">'+reviewCur.zh+'</div>'+(reviewCur.example?'<div class="card-ex-block"><div class="card-ex-en">'+reviewCur.example.replace(/"/g,'&quot;')+' <button class="btn-voice-sm" data-text="'+reviewCur.example.replace(/"/g,'&quot;')+'" onclick="speakSm(this,event)">🔊</button></div>'+(reviewCur.example_zh?'<div class="card-ex-zh">'+reviewCur.example_zh+'</div>':'')+'</div>':'')+'<div class="card-meta">复习 '+reviewCur.timesReviewed+' 次 · '+LVL[reviewCur.level]+'</div><div class="spell-area" onclick="event.stopPropagation()" style="margin-top:8px;"><input class="spell-input" id="rsi" placeholder="输入英文拼写..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key===\'Enter\')reviewSpellCheck()"><div class="spell-feedback" id="rsf"></div><button class="spell-btn" onclick="reviewSpellCheck()">✅ 检查</button></div></div></div></div></div><div class="actions"><button class="act act-no" onclick="reviewAnswer(0)">不认识</button><button class="act act-maybe" onclick="reviewAnswer(1)">模糊</button><button class="act act-yes" onclick="reviewAnswer(2)">认识</button></div>';
+    el.innerHTML='<div class="progress"><div class="n">'+(reviewDaily-reviewPool.length+1)+' / '+reviewDaily+'</div><div class="l">今日复习 · '+LVL[reviewCur.level]+'</div></div><div class="card-scene"><div class="card-wrap"><div class="card" id="rfc" onclick="document.getElementById(\'rfc\').classList.toggle(\'flipped\')"><div class="card-face card-front"><span class="card-pos '+pc+'">'+(reviewCur.pos||'')+'</span><div class="card-word">'+reviewCur.en+'</div><div class="card-phonetic">'+(reviewCur.phonetic||'')+'</div><button class="btn-voice" id="rvc" onclick="speak(\''+reviewCur.en.replace(/'/g,"\\'")+'\',\'rvc\',event)">🔊</button><div class="card-hint">点击卡片查看释义</div></div><div class="card-face card-back"><div class="card-zh-main">'+reviewCur.zh+'</div>'+(reviewCur.example?'<div class="card-ex-block"><div class="card-ex-en">'+reviewCur.example.replace(/"/g,'&quot;')+' <button class="btn-voice-sm" data-text="'+reviewCur.example.replace(/"/g,'&quot;')+'" onclick="speakSm(this,event)">🔊</button></div>'+(reviewCur.example_zh?'<div class="card-ex-zh">'+reviewCur.example_zh+'</div>':'')+'</div>':'')+'<div class="card-meta">复习 '+reviewCur.timesReviewed+' 次 · '+LVL[reviewCur.level]+'</div><div class="spell-area" onclick="event.stopPropagation()" style="margin-top:8px;"><input class="spell-input" id="rsi" placeholder="输入英文拼写..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key===\'Enter\')reviewSpellCheck()"><div class="spell-feedback" id="rsf"></div><button class="spell-btn" onclick="reviewSpellCheck()">✅ 检查</button></div></div></div></div></div><div class="review-wordlist" id="rwl"></div><div class="actions"><button class="act act-no" onclick="reviewAnswer(0)">不认识</button><button class="act act-maybe" onclick="reviewAnswer(1)">模糊</button><button class="act act-yes" onclick="reviewAnswer(2)">认识</button></div>';
   }else{
     reviewCur=null;
     renderReview();
