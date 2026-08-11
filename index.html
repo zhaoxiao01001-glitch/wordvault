@@ -9918,17 +9918,6 @@ function renderHistoryStats(){
   if(h.total.reviewed>0)html+='<div>掌握率: '+Math.round(h.total.correct/h.total.reviewed*100)+'% ('+h.total.correct+'/'+h.total.reviewed+')</div>';
   el.innerHTML=html;
 }
-  var h=getHistory();var el=document.getElementById('history-stats');if(!el)return;
-  var html='<div style="margin-bottom:4px;">📅 今日: 学习 '+h.today.learned+' 词 · 复习 '+h.today.reviewed+' 词</div>';
-  if(h.today.reviewed>0)html+='<div style="margin-bottom:4px;">✅ '+h.today.correct+' 认识 · 🟡 '+h.today.vague+' 模糊 · ❌ '+h.today.wrong+' 不认识</div>';
-  html+='<div style="margin-bottom:6px;">━━━━━━━━━━</div>';
-  html+='<div style="margin-bottom:6px;font-weight:600;">📈 近7天</div>';
-  for(var i=0;i<h.last7.length;i++){var d=h.last7[i];html+='<div>'+d.date+': 学 '+d.s.learned+' · 复 '+d.s.reviewed+'</div>';}
-  html+='<div style="margin-top:6px;">━━━━━━━━━━</div>';
-  html+='<div style="margin-top:4px;">📊 总计: '+h.total.days+' 天 · 学 '+h.total.learned+' 词 · 复 '+h.total.reviewed+' 次</div>';
-  if(h.total.reviewed>0)html+='<div>掌握率: '+Math.round(h.total.correct/h.total.reviewed*100)+'% ('+h.total.correct+'/'+h.total.reviewed+')</div>';
-  el.innerHTML=html;
-}
 function init(){
 
   if(window.speechSynthesis){
