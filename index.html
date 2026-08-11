@@ -212,7 +212,13 @@
     <div class="setting-row"><span class="setting-label">🎤 朗读声音</span><select class="setting-select" id="so-voice" onchange="onVoiceChange(this.value)"></select></div>
     <div class="setting-row"><span class="setting-label">🎵 朗读语速</span><select class="setting-select" id="so-rate" onchange="onRateChange(this.value)"><option value="0.7">慢</option><option value="0.85">稍慢</option><option value="1.0" selected>正常</option><option value="1.15">稍快</option><option value="1.3">快</option></select></div>
     <div class="setting-row"><span class="setting-label">📅 每日新词</span><input class="setting-input" type="number" min="5" max="100" id="so-learn" onchange="onLearnChange(this.value)"></div>
-    <div class="setting-row"><span class="setting-label">🔄 每日复习</span><input class="setting-input" type="number" min="5" max="100" id="so-review" onchange="onReviewChange(this.value)"></div>
+    <div class="setting-row"><span class="setting-label">🔄 每日复习</span><input class="setting-input" type="number" min="5" max="100" id="so-review" onchange="onReviewChange(this.value)">
+    <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">📊 学习记录</div>
+      <div id="history-stats" style="font-size:11px;color:var(--text-dim);line-height:1.8;">
+        <div>加载中...</div>
+      </div>
+    </div>
   </div>
   <div class="nav-tabs">
     <button class="nav-tab on" onclick="switchTab('learn')">📝 学习</button>
@@ -9594,6 +9600,42 @@ function load(){let w=ls('wv4_words');if(!w){w=JSON.parse(JSON.stringify(EMBEDDE
 function save(w){ls('wv4_words',w)}
 function streak(){var d=ls('wv4_streak')||{d:'',n:0};var t=dateKey();if(d.d===t)return d.n;var y=dateKey(-1);var n=d.d===y?d.n+1:1;ls('wv4_streak',{d:t,n});return n}
 function dateKey(off){var d=new Date();if(off)d.setDate(d.getDate()+off);return d.toISOString().slice(0,10)}
+
+function getTodayDetail(){
+  var today=dateKey();var d=ls('wv4_today_detail');
+  if(!d||d.date!==today)return {date:today,learned:[],reviewed:[]};
+  return d;
+}
+function addLearnedWord(wordEn){
+  var d=getTodayDetail();d.date=dateKey();
+  if(d.learned.indexOf(wordEn)===-1)d.learned.push(wordEn);
+  ls('wv4_today_detail',d);
+}
+function addReviewedWord(wordEn,result){
+  var d=getTodayDetail();d.date=dateKey();
+  var labels={0:'不认识',1:'模糊',2:'认识'};
+  d.reviewed.push({word:wordEn,result:labels[result]||'?'});
+  ls('wv4_today_detail',d);
+}
+
+function recordHistory(type,result){
+  var today=dateKey();var h=ls('wv4_history')||{};
+  if(!h[today])h[today]={learned:0,reviewed:0,correct:0,vague:0,wrong:0};
+  if(type==='learn')h[today].learned++;
+  if(type==='review'){h[today].reviewed++;if(result===2)h[today].correct++;else if(result===1)h[today].vague++;else h[today].wrong++;}
+  // Keep last 90 days
+  var keys=Object.keys(h).sort();while(keys.length>90){delete h[keys.shift()];}
+  ls('wv4_history',h);
+}
+function getHistory(){
+  var h=ls('wv4_history')||{};var today=dateKey();
+  var total={learned:0,reviewed:0,correct:0,vague:0,wrong:0,days:Object.keys(h).length};
+  for(var d in h){total.learned+=h[d].learned||0;total.reviewed+=h[d].reviewed||0;total.correct+=h[d].correct||0;total.vague+=h[d].vague||0;total.wrong+=h[d].wrong||0;}
+  var todayStats=h[today]||{learned:0,reviewed:0,correct:0,vague:0,wrong:0};
+  var last7=[];for(var i=6;i>=0;i--){var dk=dateKey(-i);if(h[dk])last7.push({date:dk.slice(5),s:h[dk]});else last7.push({date:dk.slice(5),s:{learned:0,reviewed:0}});}
+  return {today:todayStats,total:total,last7:last7};
+}
+
 function due(w){var today=dateKey();return w.filter(function(x){var rd=new Date(x.nextReview).toISOString().slice(0,10);return rd<=today})}
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
 function nextDay(days){var d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+days);return d.getTime()}
@@ -9715,12 +9757,12 @@ function learnCheck(){
 function learnDone(){
   if(!learnCur)return;var w=load();var wi=w.find(function(x){return x.en===learnCur.en});if(!wi)return;
   wi.level=1;wi.timesReviewed=1;wi.nextReview=nextDay(SPACED[1]);
-  markToday(wi.en);save(w);learnCur=null;learnAttempts=0;renderLearn();
+  markToday(wi.en);save(w);recordHistory('learn',2);addLearnedWord(wi.en);learnCur=null;learnAttempts=0;renderLearn();
 }
 function learnSkip(){
   if(!learnCur)return;var w=load();var wi=w.find(function(x){return x.en===learnCur.en});if(!wi)return;
   wi.level=1;wi.timesReviewed=1;wi.nextReview=nextDay(SPACED[1]);
-  markToday(wi.en);save(w);learnCur=null;learnAttempts=0;renderLearn();
+  markToday(wi.en);save(w);recordHistory('learn',2);addLearnedWord(wi.en);learnCur=null;learnAttempts=0;renderLearn();
 }
 
 // ═══ REVIEW MODE ═══
@@ -9747,7 +9789,7 @@ function renderReview(){
 function reviewAnswer(type){
   if(!reviewCur)return;var w=load();var wi=w.find(function(x){return x.en===reviewCur.en});if(!wi)return;
   if(type===0)wi.level=1;else if(type===1){} else wi.level=Math.min(5,wi.level+1);
-  wi.timesReviewed++;wi.nextReview=nextDay(SPACED[wi.level]);reviewAttempts=0;
+  wi.timesReviewed++;wi.nextReview=nextDay(SPACED[wi.level]);reviewAttempts=0;recordHistory('review',type);addReviewedWord(wi.en,type);
   save(w);
   // Remove from pool and show next
   reviewPool.shift();
@@ -9852,7 +9894,7 @@ function resetAll(){
 
 function toggleSettings(){
   document.getElementById('settings').classList.toggle('show');
-  if(document.getElementById('settings').classList.contains('show')){
+  if(document.getElementById('settings').classList.contains('show')){renderHistoryStats();
     setTimeout(populateVoices,100);document.getElementById('so-voice').value=selectedVoice;
     document.getElementById('so-learn').value=learnDaily;document.getElementById('so-review').value=reviewDaily;document.getElementById('so-rate').value=ttsRate;
   }
@@ -9861,7 +9903,34 @@ function onVoiceChange(v){saveVoice(v)}
 function onLearnChange(v){saveLearn(v)}
 function onRateChange(v){saveRate(parseFloat(v)||1.0)}
 
+
+function renderHistoryStats(){
+  var h=getHistory();var td=getTodayDetail();var el=document.getElementById('history-stats');if(!el)return;
+  var html='<div style="margin-bottom:4px;">📅 今日: 学习 '+h.today.learned+' 词 · 复习 '+h.today.reviewed+' 词</div>';
+  if(h.today.reviewed>0)html+='<div style="margin-bottom:4px;">✅ '+h.today.correct+' 认识 · 🟡 '+h.today.vague+' 模糊 · ❌ '+h.today.wrong+' 不认识</div>';
+  if(td.learned.length>0){html+='<div style="margin-top:6px;font-size:10px;color:var(--green);">📝 学习: '+td.learned.join(', ')+'</div>';}
+  if(td.reviewed.length>0){html+='<div style="margin-top:4px;font-size:10px;">🔄 复习: ';for(var i=0;i<td.reviewed.length;i++){var r=td.reviewed[i];var color=r.result==='认识'?'var(--green)':r.result==='模糊'?'var(--amber)':'var(--red)';html+='<span style="color:'+color+'">'+r.word+'('+r.result+')</span> ';}html+='</div>';}
+  html+='<div style="margin-top:8px;">━━━━━━━━━━</div>';
+  html+='<div style="margin-bottom:6px;font-weight:600;">📈 近7天</div>';
+  for(var i=0;i<h.last7.length;i++){var d=h.last7[i];html+='<div>'+d.date+': 学 '+d.s.learned+' · 复 '+d.s.reviewed+'</div>';}
+  html+='<div style="margin-top:6px;">━━━━━━━━━━</div>';
+  html+='<div style="margin-top:4px;">📊 总计: '+h.total.days+' 天 · 学 '+h.total.learned+' 词 · 复 '+h.total.reviewed+' 次</div>';
+  if(h.total.reviewed>0)html+='<div>掌握率: '+Math.round(h.total.correct/h.total.reviewed*100)+'% ('+h.total.correct+'/'+h.total.reviewed+')</div>';
+  el.innerHTML=html;
+}
+  var h=getHistory();var el=document.getElementById('history-stats');if(!el)return;
+  var html='<div style="margin-bottom:4px;">📅 今日: 学习 '+h.today.learned+' 词 · 复习 '+h.today.reviewed+' 词</div>';
+  if(h.today.reviewed>0)html+='<div style="margin-bottom:4px;">✅ '+h.today.correct+' 认识 · 🟡 '+h.today.vague+' 模糊 · ❌ '+h.today.wrong+' 不认识</div>';
+  html+='<div style="margin-bottom:6px;">━━━━━━━━━━</div>';
+  html+='<div style="margin-bottom:6px;font-weight:600;">📈 近7天</div>';
+  for(var i=0;i<h.last7.length;i++){var d=h.last7[i];html+='<div>'+d.date+': 学 '+d.s.learned+' · 复 '+d.s.reviewed+'</div>';}
+  html+='<div style="margin-top:6px;">━━━━━━━━━━</div>';
+  html+='<div style="margin-top:4px;">📊 总计: '+h.total.days+' 天 · 学 '+h.total.learned+' 词 · 复 '+h.total.reviewed+' 次</div>';
+  if(h.total.reviewed>0)html+='<div>掌握率: '+Math.round(h.total.correct/h.total.reviewed*100)+'% ('+h.total.correct+'/'+h.total.reviewed+')</div>';
+  el.innerHTML=html;
+}
 function init(){
+
   if(window.speechSynthesis){
     window.speechSynthesis.onvoiceschanged=function(){loadVoices();if(!selectedVoice&&cachedVoices.length>0){var b=cachedVoices.filter(function(v){return v.name.indexOf('Samantha')>=0});selectedVoice=b.length?b[0].name:cachedVoices[0].name;saveVoice(selectedVoice)}};
     window.speechSynthesis.getVoices();setTimeout(function(){loadVoices();if(!selectedVoice&&cachedVoices.length>0){var b=cachedVoices.filter(function(v){return v.name.indexOf('Samantha')>=0});selectedVoice=b.length?b[0].name:cachedVoices[0].name;saveVoice(selectedVoice)}},500);
