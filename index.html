@@ -49,7 +49,7 @@
 
   /* Panel */
   .pane { display:none; position:absolute; top:120px; left:0; right:0; bottom:0; overflow-y:auto; -webkit-overflow-scrolling:touch; width:100%; }
-  .pane.on { display:block; }
+  .pane.on { display:flex; flex-direction:column; min-height:0; }
   .pane > div { width:100%; min-height:100%; }
   .app { position:relative; width:100%; max-width:440px; display:flex; flex-direction:column; height:100vh; overflow:hidden; }
   /* Custom scrollbar */
