@@ -11,16 +11,16 @@
     --card-bg: #15152a; --orange: #fb923c;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { height:100vh; margin:0; padding:0; overflow:hidden; }
+  html, body { height:100%; margin:0; padding:0; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
     background: var(--bg);
     background-image:
       radial-gradient(ellipse at 50% 0%, rgba(139,92,246,0.08) 0%, transparent 60%),
       radial-gradient(ellipse at 50% 100%, rgba(59,130,246,0.06) 0%, transparent 60%);
-    color: var(--text); height:100vh; display: flex; justify-content: center;
+    color: var(--text); height:100%; display: flex; justify-content: center;
     padding: 12px; -webkit-tap-highlight-color: transparent; user-select: none; }
-  .app { width:100%; max-width:440px; display:flex; flex-direction:column; height:100vh; }
+  .app { width:100%; max-width:440px; display:flex; flex-direction:column; height:100%; overflow:hidden; }
 
   .top-bar { display:flex; align-items:center; justify-content:space-between; padding:20px 0 8px; }
   .top-bar h1 { font-size:21px; font-weight:700; letter-spacing:-0.4px;
@@ -49,8 +49,8 @@
   .nav-tab.on { background:rgba(255,255,255,0.08); color:var(--text); }
 
   /* Panel */
-  .pane { flex:1 1 auto; flex-direction:column; min-height:0; }
-  .pane.on { }
+  .pane { display:none; flex-direction:column; height:calc(100% - 120px); overflow-y:auto; }
+  .pane.on { display:flex; }
 
   /* Card */
   .card-scene { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; }
