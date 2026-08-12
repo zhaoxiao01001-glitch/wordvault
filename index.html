@@ -230,7 +230,7 @@
     <button class="nav-tab" onclick="switchTab('words')">📖 词库</button>
     <button class="nav-tab" onclick="switchTab('add')">➕ 添加</button>
   </div>
-  <div class="pane on" id="pane-learn"><div id="learn"></div></div>
+  <div class="pane on" id="pane-learn" style="display:flex"><div id="learn"></div></div>
   <div class="pane" id="pane-review"><div id="review"></div></div>
   <div class="pane" id="pane-words">
     <div class="list-toolbar"><input class="search-box" placeholder="🔍 搜索英文或中文..." oninput="renderList(true)" id="sq"><select class="pos-filter" id="pf" onchange="renderList(true)"><option value="all">全部</option><option value="int">感叹词</option><option value="art">冠词</option><option value="pron">代词</option><option value="conj">连词</option><option value="prep">介词</option><option value="adv">副词</option><option value="v">动词</option><option value="adj">形容词</option><option value="n">名词</option></select></div>
