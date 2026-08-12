@@ -11,13 +11,16 @@
     --card-bg: #15152a; --orange: #fb923c;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-    background: var(--bg); background-image:
+  html, body { height:100%; margin:0; padding:0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    background: var(--bg);
+    background-image:
       radial-gradient(ellipse at 50% 0%, rgba(139,92,246,0.08) 0%, transparent 60%),
       radial-gradient(ellipse at 50% 100%, rgba(59,130,246,0.06) 0%, transparent 60%);
-    color: var(--text); min-height: 100vh; display: flex; justify-content: center;
+    color: var(--text); height:100%; display: flex; justify-content: center;
     padding: 12px; -webkit-tap-highlight-color: transparent; user-select: none; }
-  .app { width:100%; max-width:440px; display:flex; flex-direction:column; min-height:100vh; }
+  .app { width:100%; max-width:440px; display:flex; flex-direction:column; height:100%; }
 
   .top-bar { display:flex; align-items:center; justify-content:space-between; padding:20px 0 8px; }
   .top-bar h1 { font-size:21px; font-weight:700; letter-spacing:-0.4px;
@@ -209,8 +212,8 @@
   @media(max-width:360px){ .card-word{font-size:32px} .card-zh-main{font-size:22px} .act{font-size:13px;padding:13px 0} }
 </style>
 </head>
-<body>
-<div class="app">
+<body style="display:flex !important;min-height:100vh"><div style="color:white;padding:10px;position:fixed;top:0;left:0;z-index:99999;background:red;font-size:14px;" id="debug-msg">✅ HTML已加载</div>
+<div class="app" style="display:flex !important;flex-direction:column;min-height:100vh">
   <div class="top-bar"><h1>⚡ 霹雳王</h1><button class="top-btn" onclick="toggleSettings()">⚙️</button></div>
   <div class="settings-panel" id="settings">
     <div class="setting-row"><span class="setting-label">🎤 朗读声音</span><select class="setting-select" id="so-voice" onchange="onVoiceChange(this.value)"></select></div>
@@ -230,7 +233,7 @@
     <button class="nav-tab" onclick="switchTab('words')">📖 词库</button>
     <button class="nav-tab" onclick="switchTab('add')">➕ 添加</button>
   </div>
-  <div class="pane on" id="pane-learn" style="display:flex"><div id="learn"></div></div>
+  <div class="pane on" id="pane-learn" style="display:flex !important"><div id="learn"></div></div>
   <div class="pane" id="pane-review"><div id="review"></div></div>
   <div class="pane" id="pane-words">
     <div class="list-toolbar"><input class="search-box" placeholder="🔍 搜索英文或中文..." oninput="renderList(true)" id="sq"><select class="pos-filter" id="pf" onchange="renderList(true)"><option value="all">全部</option><option value="int">感叹词</option><option value="art">冠词</option><option value="pron">代词</option><option value="conj">连词</option><option value="prep">介词</option><option value="adv">副词</option><option value="v">动词</option><option value="adj">形容词</option><option value="n">名词</option></select></div>
@@ -9945,7 +9948,7 @@ function init(){
   }
   renderLearn();
 }
-document.getElementById('learn').innerHTML='<div class=done-state><div class=emoji>⏳</div><h3>加载中...</h3></div>';try{streak();init();}catch(e){document.getElementById('learn').innerHTML='<div class=done-state><div class=emoji>❌</div><h3>出错了</h3><p>'+e.message+'</p></div>';}
+document.getElementById('learn').innerHTML='<div class=done-state><div class=emoji>⏳</div><h3>加载中...</h3></div>';try{streak();init();}catch(e){document.getElementById('learn').innerHTML='<div class=done-state><div class=emoji>❌</div><h3>出错了</h3><p>'+e.message+'</p></div>';}var dm=document.getElementById('debug-msg');if(dm){var p=document.getElementById('pane-learn');var cs=window.getComputedStyle(p);dm.textContent='✅ init OK | pane: display='+cs.display+' height='+p.offsetHeight+'px visible='+(p.offsetHeight>0);}
 </script>
 </body>
 </html>
