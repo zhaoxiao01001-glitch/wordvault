@@ -21,7 +21,7 @@
     color: var(--text); height:100vh; display: flex; justify-content: center;
     padding: 12px; -webkit-tap-highlight-color: transparent; user-select: none; }
 
-  .top-bar { display:flex; align-items:center; justify-content:space-between; padding:20px 0 8px; }
+  .top-bar { display:flex; align-items:center; justify-content:space-between; padding:12px 0 4px; }
   .top-bar h1 { font-size:21px; font-weight:700; letter-spacing:-0.4px;
     background:linear-gradient(135deg,#a78bfa,#60a5fa); -webkit-background-clip:text;
     -webkit-text-fill-color:transparent; background-clip:text; }
@@ -30,7 +30,7 @@
     display:flex; align-items:center; justify-content:center; transition:all .15s; }
   .top-btn:hover { background:rgba(255,255,255,0.08); color:var(--text); }
 
-  .settings-panel { position:absolute; top:60px; left:0; right:0; z-index:100; background:rgba(20,20,40,0.97); border:1px solid var(--border);
+  .settings-panel { position:absolute; top:48px; left:0; right:0; z-index:100; background:rgba(20,20,40,0.97); border:1px solid var(--border);
     border-radius:16px; padding:18px; display:none; flex-direction:column; gap:12px; }
   .settings-panel.show { display:flex; }
   .setting-row { display:flex; align-items:center; justify-content:space-between; }
@@ -48,7 +48,7 @@
   .nav-tab.on { background:rgba(255,255,255,0.08); color:var(--text); }
 
   /* Panel */
-  .pane { display:none; position:absolute; top:120px; left:0; right:0; bottom:0; overflow-y:auto; -webkit-overflow-scrolling:touch; width:100%; }
+  .pane { display:none; position:absolute; top:90px; left:0; right:0; bottom:0; overflow-y:auto; -webkit-overflow-scrolling:touch; width:100%; }
   .pane.on { display:flex; flex-direction:column; min-height:0; }
   .pane > div { min-height:100%; }
   .app { position:relative; width:100%; max-width:440px; display:flex; flex-direction:column; height:100vh; overflow:hidden; }
@@ -162,7 +162,7 @@
   .done-stat .l { font-size:10px; color:var(--text-dim); margin-top:1px; }
 
   /* Word list */
-  .list-toolbar { display:flex; gap:6px; margin-bottom:8px; align-items:center; }
+  .list-toolbar { display:flex; gap:6px; margin-bottom:6px; align-items:center; }
   .search-box { width:160px !important; flex:none !important; padding:6px 10px; background:var(--surface); border:2px solid var(--red) !important;
     border-radius:8px; color:var(--text); font-size:12px; outline:none; font-family:inherit; }
   .search-box::placeholder { color:var(--text-dim); opacity:.5; }
