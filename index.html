@@ -11,16 +11,16 @@
     --card-bg: #15152a; --orange: #fb923c;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { height:100%; margin:0; padding:0; }
+  html, body { height:100vh; margin:0; padding:0; overflow:hidden; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
     background: var(--bg);
     background-image:
       radial-gradient(ellipse at 50% 0%, rgba(139,92,246,0.08) 0%, transparent 60%),
       radial-gradient(ellipse at 50% 100%, rgba(59,130,246,0.06) 0%, transparent 60%);
-    color: var(--text); height:100%; display: flex; justify-content: center;
+    color: var(--text); height:100vh; display: flex; justify-content: center;
     padding: 12px; -webkit-tap-highlight-color: transparent; user-select: none; }
-  .app { width:100%; max-width:440px; display:flex; flex-direction:column; height:100%; }
+  .app { width:100%; max-width:440px; display:flex; flex-direction:column; height:100vh; }
 
   .top-bar { display:flex; align-items:center; justify-content:space-between; padding:20px 0 8px; }
   .top-bar h1 { font-size:21px; font-weight:700; letter-spacing:-0.4px;
@@ -49,8 +49,8 @@
   .nav-tab.on { background:rgba(255,255,255,0.08); color:var(--text); }
 
   /* Panel */
-  .pane { display:none; flex:1; flex-direction:column; }
-  .pane.on { display:flex; }
+  .pane { flex:1 1 auto; flex-direction:column; min-height:0; }
+  .pane.on { }
 
   /* Card */
   .card-scene { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; }
@@ -9719,8 +9719,8 @@ function switchTab(name){
   document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('on')});
   var map={learn:0,review:1,words:2,add:3};
   document.querySelectorAll('.nav-tab')[map[name]].classList.add('on');
-  document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('on')});
-  document.getElementById('pane-'+name).classList.add('on');
+  document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('on');p.style.display='none';});
+  var ap=document.getElementById('pane-'+name);ap.classList.add('on');ap.style.display='flex';
   if(name==='review'){reviewPool=[];renderReview();}if(name==='learn')renderLearn();if(name==='words')renderList();
 }
 
@@ -9944,11 +9944,11 @@ function init(){
 
   if(window.speechSynthesis){
     window.speechSynthesis.onvoiceschanged=function(){loadVoices();if(!selectedVoice&&cachedVoices.length>0){var b=cachedVoices.filter(function(v){return v.name.indexOf('Samantha')>=0});selectedVoice=b.length?b[0].name:cachedVoices[0].name;saveVoice(selectedVoice)}};
-    window.speechSynthesis.getVoices();setTimeout(function(){loadVoices();if(!selectedVoice&&cachedVoices.length>0){var b=cachedVoices.filter(function(v){return v.name.indexOf('Samantha')>=0});selectedVoice=b.length?b[0].name:cachedVoices[0].name;saveVoice(selectedVoice)}},500);
+    window.speechSynthesis.getVoices();var pl=document.getElementById('pane-learn');if(pl)pl.style.display='flex';setTimeout(function(){loadVoices();if(!selectedVoice&&cachedVoices.length>0){var b=cachedVoices.filter(function(v){return v.name.indexOf('Samantha')>=0});selectedVoice=b.length?b[0].name:cachedVoices[0].name;saveVoice(selectedVoice)}},500);
   }
   renderLearn();
 }
-document.getElementById('learn').innerHTML='<div class=done-state><div class=emoji>⏳</div><h3>加载中...</h3></div>';try{streak();init();}catch(e){document.getElementById('learn').innerHTML='<div class=done-state><div class=emoji>❌</div><h3>出错了</h3><p>'+e.message+'</p></div>';}var dm=document.getElementById('debug-msg');if(dm){var p=document.getElementById('pane-learn');var cs=window.getComputedStyle(p);dm.textContent='✅ init OK | pane: display='+cs.display+' height='+p.offsetHeight+'px visible='+(p.offsetHeight>0);}
+document.getElementById('learn').innerHTML='<div class=done-state><div class=emoji>⏳</div><h3>加载中...</h3></div>';try{streak();init();}catch(e){document.getElementById('learn').innerHTML='<div class=done-state><div class=emoji>❌</div><h3>出错了</h3><p>'+e.message+'</p></div>';}var dm=document.getElementById('debug-msg');if(dm){var p=document.getElementById('pane-learn');var cs=window.getComputedStyle(p);dm.textContent='✅ init OK | pane: display='+cs.display+' height='+p.offsetHeight+'px visible='+(p.offsetHeight>0)+' appH='+document.querySelector('.app').offsetHeight+' bodyH='+document.body.offsetHeight;}
 </script>
 </body>
 </html>
