@@ -49,8 +49,13 @@
   .nav-tab.on { background:rgba(255,255,255,0.08); color:var(--text); }
 
   /* Panel */
-  .pane { display:none; flex-direction:column; height:calc(100vh - 130px); overflow-y:auto; }
+  .pane { display:none; flex-direction:column; height:calc(100vh - 130px); overflow-y:auto; -webkit-overflow-scrolling:touch; }
   .pane.on { display:flex; }
+  /* Custom scrollbar */
+  .pane::-webkit-scrollbar { width:6px; }
+  .pane::-webkit-scrollbar-track { background:transparent; }
+  .pane::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.15); border-radius:3px; }
+  .pane::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.25); }
 
   /* Card */
   .card-scene { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; }
@@ -9764,12 +9769,12 @@ function learnCheck(){
 function learnDone(){
   if(!learnCur)return;var w=load();var wi=w.find(function(x){return x.en===learnCur.en});if(!wi)return;
   wi.level=1;wi.timesReviewed=1;wi.nextReview=nextDay(SPACED[1]);
-  markToday(wi.en);save(w);recordHistory('learn',2);addLearnedWord(wi.en);learnCur=null;learnAttempts=0;renderLearn();
+  markToday(wi.en);save(w);recordHistory('learn',2);addLearnedWord(wi.en);learnCur=null;learnAttempts=0;renderLearn();setTimeout(function(){toggleSettings();setTimeout(function(){toggleSettings();},50);},100);
 }
 function learnSkip(){
   if(!learnCur)return;var w=load();var wi=w.find(function(x){return x.en===learnCur.en});if(!wi)return;
   wi.level=1;wi.timesReviewed=1;wi.nextReview=nextDay(SPACED[1]);
-  markToday(wi.en);save(w);recordHistory('learn',2);addLearnedWord(wi.en);learnCur=null;learnAttempts=0;renderLearn();
+  markToday(wi.en);save(w);recordHistory('learn',2);addLearnedWord(wi.en);learnCur=null;learnAttempts=0;renderLearn();setTimeout(function(){toggleSettings();setTimeout(function(){toggleSettings();},50);},100);
 }
 
 // ═══ REVIEW MODE ═══
@@ -9946,7 +9951,7 @@ function init(){
     window.speechSynthesis.onvoiceschanged=function(){loadVoices();if(!selectedVoice&&cachedVoices.length>0){var b=cachedVoices.filter(function(v){return v.name.indexOf('Samantha')>=0});selectedVoice=b.length?b[0].name:cachedVoices[0].name;saveVoice(selectedVoice)}};
     window.speechSynthesis.getVoices();var pl=document.getElementById('pane-learn');if(pl)pl.style.display='flex';setTimeout(function(){loadVoices();if(!selectedVoice&&cachedVoices.length>0){var b=cachedVoices.filter(function(v){return v.name.indexOf('Samantha')>=0});selectedVoice=b.length?b[0].name:cachedVoices[0].name;saveVoice(selectedVoice)}},500);
   }
-  renderLearn();
+  renderLearn();setTimeout(function(){toggleSettings();setTimeout(function(){toggleSettings();},50);},100);
 }
 document.getElementById('learn').innerHTML='<div class=done-state><div class=emoji>⏳</div><h3>加载中...</h3></div>';try{streak();init();}catch(e){document.getElementById('learn').innerHTML='<div class=done-state><div class=emoji>❌</div><h3>出错了</h3><p>'+e.message+'</p></div>';}
 </script>
