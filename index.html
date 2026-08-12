@@ -18,9 +18,8 @@
     background-image:
       radial-gradient(ellipse at 50% 0%, rgba(139,92,246,0.08) 0%, transparent 60%),
       radial-gradient(ellipse at 50% 100%, rgba(59,130,246,0.06) 0%, transparent 60%);
-    color: var(--text); height:100%; display: flex; justify-content: center;
+    color: var(--text); height:100vh; display: flex; justify-content: center;
     padding: 12px; -webkit-tap-highlight-color: transparent; user-select: none; }
-  .app { width:100%; max-width:440px; display:flex; flex-direction:column; height:100%; overflow:hidden; }
 
   .top-bar { display:flex; align-items:center; justify-content:space-between; padding:20px 0 8px; }
   .top-bar h1 { font-size:21px; font-weight:700; letter-spacing:-0.4px;
@@ -49,8 +48,9 @@
   .nav-tab.on { background:rgba(255,255,255,0.08); color:var(--text); }
 
   /* Panel */
-  .pane { display:none; flex-direction:column; height:calc(100vh - 130px); overflow-y:auto; -webkit-overflow-scrolling:touch; }
-  .pane.on { display:flex; }
+  .pane { display:none; position:absolute; top:120px; left:0; right:0; bottom:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .pane.on { display:flex; flex-direction:column; }
+  .app { position:relative; width:100%; max-width:440px; display:flex; flex-direction:column; height:100vh; overflow:hidden; }
   /* Custom scrollbar */
   .pane::-webkit-scrollbar { width:6px; }
   .pane::-webkit-scrollbar-track { background:transparent; }
