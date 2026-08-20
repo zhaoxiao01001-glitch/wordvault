@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>天霸霹雳 · 300高频词</title>
+<style>
+  :root {
+    --bg: #0d0d1a; --surface: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.06);
+    --text: #e8e8f0; --text-dim: #7a7a96; --green: #34d399; --amber: #f59e0b;
+    --red: #ef4444; --blue: #60a5fa; --purple: #a78bfa; --pink: #f472b6;
+    --card-bg: #15152a; --orange: #fb923c;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; margin:0; padding:0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse at 50% 0%, rgba(139,92,246,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 50% 100%, rgba(59,130,246,0.06) 0%, transparent 60%);
+    color: var(--text); height:100vh; display: flex; justify-content: center;
+    padding: 12px; -webkit-tap-highlight-color: transparent; user-select: none; }
+
+  .top-bar { display:flex; align-items:center; justify-content:space-between; padding:12px 0 4px; }
+  .top-bar h1 { font-size:21px; font-weight:700; letter-spacing:-0.4px;
+    background:linear-gradient(135deg,#a78bfa,#60a5fa); -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent; background-clip:text; }
+  .top-btn { width:32px; height:32px; border-radius:50%; border:1px solid var(--border);
+    background:var(--surface); color:var(--text-dim); font-size:14px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:all .15s; }
+  .top-btn:hover { background:rgba(255,255,255,0.08); color:var(--text); }
+
+  .settings-panel { position:absolute; top:48px; left:0; right:0; z-index:100; background:rgba(20,20,40,0.97); border:1px solid var(--border);
+    border-radius:16px; padding:18px; display:none; flex-direction:column; gap:12px; }
+  .settings-panel.show { display:flex; }
+  .setting-row { display:flex; align-items:center; justify-content:space-between; }
+  .setting-label { font-size:12px; color:var(--text-dim); }
+  .setting-select,.setting-input { padding:5px 10px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface); color:var(--text); font-size:12px; outline:none; font-family:inherit; }
+  .setting-select { max-width:150px; appearance:none; -webkit-appearance:none; cursor:pointer; }
+  .setting-input { width:56px; text-align:center; }
+
+  .nav-tabs { display:flex; gap:3px; background:var(--surface); border:1px solid var(--border);
+    border-radius:13px; padding:3px; margin-bottom:14px; }
+  .nav-tab { flex:1; padding:9px 0; text-align:center; font-size:12px; font-weight:550;
+    border-radius:11px; cursor:pointer; transition:all .2s; color:var(--text-dim);
+    border:none; background:none; white-space:nowrap; }
+  .nav-tab.on { background:rgba(255,255,255,0.08); color:var(--text); }
+
+  /* Panel */
+  .pane { display:none; position:absolute; top:90px; left:0; right:0; bottom:0; overflow-y:auto; -webkit-overflow-scrolling:touch; width:100%; }
+  .pane.on { display:flex; flex-direction:column; min-height:0; }
+
+  .app { position:relative; width:100%; max-width:440px; display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+  /* Custom scrollbar */
+  .pane::-webkit-scrollbar { width:6px; }
+  .pane::-webkit-scrollbar-track { background:transparent; }
+  .pane::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.15); border-radius:3px; }
+  .pane::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.25); }
+
+  /* Card */
+  .card-scene { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .card-wrap { perspective:1000px; width:100%; }
+  .card { width:100%; aspect-ratio:1/1.35; max-height:360px; position:relative;
+    transform-style:preserve-3d; transition:transform .5s cubic-bezier(0.4,0,0.2,1); cursor:pointer; margin:0 auto; }
+  .card.flipped { transform:rotateY(180deg); }
+  .card-face { position:absolute; inset:0; backface-visibility:hidden; border-radius:18px;
+    border:1px solid var(--border); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; padding:20px 18px; text-align:center;
+    background:var(--card-bg); box-shadow:0 16px 48px rgba(0,0,0,0.4),0 0 0 1px rgba(255,255,255,0.03) inset; }
+  .card-back { transform:rotateY(180deg); }
+
+  .card-pos { font-size:10px; padding:2px 10px; border-radius:8px; margin-bottom:8px; font-weight:600; }
+  .card-pos.n{background:rgba(96,165,250,.12);color:var(--blue)}
+  .card-pos.v{background:rgba(239,68,68,.12);color:var(--red)}
+  .card-pos.adj{background:rgba(52,211,153,.12);color:var(--green)}
+  .card-pos.adv{background:rgba(167,139,250,.12);color:var(--purple)}
+  .card-pos.prep{background:rgba(245,158,11,.12);color:var(--amber)}
+  .card-pos.other{background:rgba(255,255,255,.06);color:var(--text-dim)}
+
+  .card-word { font-size:40px; font-weight:750; letter-spacing:-1px; margin-bottom:2px; }
+  .card-phonetic { font-size:13px; color:var(--text-dim); margin-bottom:10px; font-style:italic; }
+  .card-zh-main { font-size:26px; font-weight:700; margin-bottom:6px; }
+  .card-ex-block { margin-bottom:8px; max-width:300px; }
+  .card-ex-en { font-size:13px; color:var(--text-dim); line-height:1.5; font-style:italic; }
+  .card-ex-zh { font-size:12px; color:var(--text-dim); opacity:.65; margin-top:2px; }
+  .card-meta { font-size:10px; color:var(--text-dim); opacity:.4; }
+
+  .btn-voice { width:42px; height:42px; border-radius:50%; border:1px solid var(--border);
+    background:rgba(96,165,250,0.06); color:var(--blue); font-size:18px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:all .15s; margin:6px 0; }
+  .btn-voice:hover { background:rgba(96,165,250,0.15); }
+  .btn-voice.speaking { background:rgba(96,165,250,0.2); border-color:var(--blue);
+    animation:voicering .6s ease-in-out infinite; }
+  @keyframes voicering { 0%,100%{box-shadow:0 0 0 0 rgba(96,165,250,.3)} 50%{box-shadow:0 0 0 10px rgba(96,165,250,0)} }
+  .card-hint { font-size:11px; color:var(--text-dim); opacity:.4; margin-top:8px; }
+  .spell-area { width:100%; max-width:260px; margin-top:10px; }
+  .spell-input { width:100%; padding:10px 14px; background:rgba(255,255,255,0.05); border:2px solid var(--border);
+    border-radius:10px; color:var(--text); font-size:18px; text-align:center; outline:none;
+    font-family:inherit; letter-spacing:1px; transition:border-color .2s; }
+  .spell-input:focus { border-color:var(--purple); }
+  .spell-input.correct { border-color:var(--green); background:rgba(52,211,153,0.08); }
+  .spell-input.wrong { border-color:var(--red); background:rgba(239,68,68,0.08); animation:shake .4s; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+  .spell-feedback { font-size:12px; margin-top:6px; min-height:18px; }
+  .spell-feedback.ok { color:var(--green); }
+  .spell-feedback.err { color:var(--red); }
+  .spell-feedback.show { color:var(--amber); }
+  .spell-btn { margin-top:8px; padding:8px 24px; border-radius:10px; border:none;
+    background:var(--purple); color:#fff; font-size:14px; font-weight:600; cursor:pointer; }
+  .spell-btn:active { opacity:.8; }
+  .spell-retry { font-size:11px; color:var(--text-dim); margin-top:4px; }
+
+  .btn-voice-sm { width:26px; height:26px; border-radius:50%; border:1px solid var(--border);
+    background:rgba(96,165,250,0.04); color:var(--blue); font-size:11px; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
+    transition:all .15s; vertical-align:middle; margin-left:4px; }
+  .btn-voice-sm:hover { background:rgba(96,165,250,0.12); }
+  .btn-voice-sm.speaking { background:rgba(96,165,250,0.18); border-color:var(--blue); }
+
+  /* Progress */
+  .progress { text-align:center; margin-bottom:6px; }
+  .progress .n { font-size:20px; font-weight:700; color:var(--purple); }
+  .progress .l { font-size:10px; color:var(--text-dim); }
+  .dots { display:flex; gap:3px; justify-content:center; margin-bottom:12px; flex-wrap:wrap; }
+  .dot { width:7px; height:7px; border-radius:50%; background:var(--border); transition:background .2s; }
+  .dot.done { background:var(--green); }
+  .dot.cur { background:var(--purple); transform:scale(1.3); }
+
+  /* Review progress */
+  .review-progress { margin-bottom:8px; }
+  .review-bar { height:3px; background:var(--surface); border-radius:3px; margin-bottom:4px; overflow:hidden; }
+  .review-fill { height:100%; background:linear-gradient(90deg,var(--red),var(--amber),var(--green)); border-radius:3px; transition:width .3s; }
+  .review-stats { display:flex; justify-content:space-between; font-size:10px; color:var(--text-dim); }
+  .review-wordlist { margin:8px 0; max-height:120px; overflow-y:auto; display:flex; flex-wrap:wrap; gap:4px; }
+  .review-worditem { font-size:10px; padding:3px 8px; border-radius:8px; background:var(--surface); color:var(--text-dim); border:1px solid var(--border); white-space:nowrap; }
+  .review-worditem.current { background:rgba(167,139,250,0.15); color:var(--purple); border-color:rgba(167,139,250,0.3); font-weight:600; }
+  .review-worditem.done { opacity:0.4; text-decoration:line-through; }
+
+  /* Action buttons */
+  .actions { display:flex; gap:8px; padding:14px 0 20px; }
+  .act { flex:1; padding:15px 0; border-radius:13px; font-size:14px; font-weight:650;
+    cursor:pointer; border:none; transition:all .12s; letter-spacing:.3px; }
+  .act:active { transform:scale(.95); }
+  .act-no { background:rgba(239,68,68,0.09); color:var(--red); }
+  .act-no:hover { background:rgba(239,68,68,0.16); }
+  .act-maybe { background:rgba(245,158,11,0.09); color:var(--amber); }
+  .act-maybe:hover { background:rgba(245,158,11,0.16); }
+  .act-yes { background:rgba(52,211,153,0.09); color:var(--green); }
+  .act-yes:hover { background:rgba(52,211,153,0.16); }
+  .act-learn { width:100%; background:rgba(52,211,153,0.12); color:var(--green); }
+  .act-learn:hover { background:rgba(52,211,153,0.2); }
+
+  .done-state { text-align:center; padding:50px 20px; flex:1; display:flex;
+    flex-direction:column; align-items:center; justify-content:center; }
+  .done-state .emoji { font-size:48px; margin-bottom:10px; }
+  .done-state h3 { font-size:18px; margin-bottom:4px; }
+  .done-state p { font-size:12px; color:var(--text-dim); line-height:1.5; }
+  .done-stats { display:flex; gap:14px; margin-top:16px; }
+  .done-stat { text-align:center; }
+  .done-stat .n { font-size:24px; font-weight:700; }
+  .done-stat .l { font-size:10px; color:var(--text-dim); margin-top:1px; }
+
+  /* Word list */
+  .list-toolbar { display:flex; gap:6px; margin-bottom:6px; align-items:center; }
+  .search-box { width:160px !important; flex:none !important; padding:6px 10px; background:var(--surface); border:1px solid var(--border);
+    border-radius:8px; color:var(--text); font-size:12px; outline:none; font-family:inherit; }
+  .search-box::placeholder { color:var(--text-dim); opacity:.5; }
+  .search-box:focus { border-color:var(--purple); }
+  .pos-filter { padding:8px 10px; border-radius:11px; border:1px solid var(--border);
+    background:var(--surface); color:var(--text-dim); font-size:12px; cursor:pointer;
+    appearance:none; -webkit-appearance:none; outline:none; }
+  .word-scroll { flex:1; overflow-y:auto; }
+  .pager { display:flex; align-items:center; justify-content:center; gap:10px; padding:10px 0 4px; }
+  .pager-btn { padding:6px 16px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text-dim); font-size:12px; cursor:pointer; transition:all .15s; }
+  .pager-btn:hover { background:var(--surface-hover); color:var(--text); }
+  .pager-btn:disabled { opacity:.3; cursor:default; }
+  .pager-info { font-size:11px; color:var(--text-dim); }
+  .pos-title { font-size:11px; font-weight:600; color:var(--text-dim); padding:6px 4px 3px;
+    letter-spacing:.5px; }
+  .word-item { display:flex; align-items:flex-start; justify-content:space-between;
+    padding:10px 12px; background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; margin-bottom:4px; }
+  .word-item .en { font-size:14px; font-weight:600; }
+  .word-item .ph { font-size:10px; color:var(--text-dim); margin-left:5px; font-weight:400; font-style:italic; }
+  .word-item .zh { font-size:11px; color:var(--text-dim); margin-top:1px; }
+  .word-item .ex-line { font-size:10px; color:var(--text-dim); opacity:.5; margin-top:1px; }
+  .word-item .meta { display:flex; gap:4px; align-items:center; flex-shrink:0; }
+  .word-tag { font-size:9px; padding:2px 8px; border-radius:8px; font-weight:600; white-space:nowrap; }
+  .word-tag.l0{background:rgba(239,68,68,.09);color:var(--red)}
+  .word-tag.l1{background:rgba(245,158,11,.09);color:var(--amber)}
+  .word-tag.l2{background:rgba(96,165,250,.09);color:var(--blue)}
+  .word-tag.l3{background:rgba(167,139,250,.09);color:var(--purple)}
+  .word-tag.l4{background:rgba(52,211,153,.09);color:var(--green)}
+  .word-del { width:24px; height:24px; border-radius:7px; border:1px solid var(--border);
+    background:none; color:var(--text-dim); cursor:pointer; font-size:11px;
+    display:flex; align-items:center; justify-content:center; }
+  .word-del:hover { background:rgba(239,68,68,.12); color:var(--red); }
+
+  /* Add */
+  .add-field { margin-bottom:10px; }
+  .add-field label { font-size:11px; color:var(--text-dim); display:block; margin-bottom:3px; }
+  .add-field input,.add-field textarea { width:100%; padding:10px 12px; background:var(--surface);
+    border:1px solid var(--border); border-radius:10px; color:var(--text); font-size:13px;
+    outline:none; font-family:inherit; }
+  .add-field textarea { resize:vertical; min-height:45px; }
+  .add-row { display:flex; gap:6px; }
+  .add-row .add-field { flex:1; }
+  .btn-submit { width:100%; padding:13px; border-radius:13px;
+    background:linear-gradient(135deg,#a78bfa,#60a5fa); color:#fff; border:none;
+    font-size:14px; font-weight:650; cursor:pointer; letter-spacing:.3px; margin-top:2px; }
+  .btn-submit:hover { opacity:.9; }
+  .btn-reset { width:100%; padding:11px; margin-top:6px; border-radius:13px;
+    background:none; border:1px solid var(--border); color:var(--text-dim);
+    font-size:11px; cursor:pointer; }
+  .btn-reset:hover { background:rgba(239,68,68,.05); color:var(--red); }
+
+  @media(max-width:360px){ .card-word{font-size:32px} .card-zh-main{font-size:22px} .act{font-size:13px;padding:13px 0} }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top-bar"><h1>⚡ 天霸霹雳</h1><button class="top-btn" onclick="toggleSettings()">⚙️</button></div>
+  <div class="settings-panel" id="settings">
+    <div class="setting-row"><span class="setting-label">🎤 朗读声音</span><select class="setting-select" id="so-voice" onchange="onVoiceChange(this.value)"></select></div>
+    <div class="setting-row"><span class="setting-label">🎵 朗读语速</span><select class="setting-select" id="so-rate" onchange="onRateChange(this.value)"><option value="0.7">慢</option><option value="0.85">稍慢</option><option value="1.0" selected>正常</option><option value="1.15">稍快</option><option value="1.3">快</option></select></div>
+    <div class="setting-row"><span class="setting-label">📅 每日新词</span><input class="setting-input" type="number" min="5" max="100" id="so-learn" onchange="onLearnChange(this.value)"></div>
+    <div class="setting-row"><span class="setting-label">🔄 每日复习</span><input class="setting-input" type="number" min="5" max="100" id="so-review" onchange="onReviewChange(this.value)"></div>
+    <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">📊 学习记录</div>
+      <div id="history-stats" style="font-size:11px;color:var(--text-dim);line-height:1.8;">
+        <div>加载中...</div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab on" onclick="switchTab('learn')">📝 学习</button>
+    <button class="nav-tab" onclick="switchTab('review')">🔄 复习</button>
+    <button class="nav-tab" onclick="switchTab('words')">📖 词库</button>
+    <button class="nav-tab" onclick="switchTab('add')">➕ 添加</button>
+  </div>
+  <div class="pane on" id="pane-learn"><div id="learn"></div></div>
+  <div class="pane" id="pane-review"><div id="review"></div></div>
+  <div class="pane" id="pane-words">
+    <div class="list-toolbar"><input class="search-box" placeholder="🔍 搜索英文或中文..." oninput="renderList(true)" id="sq"><select class="pos-filter" id="pf" onchange="renderList(true)"><option value="all">全部</option><option value="int">感叹词</option><option value="art">冠词</option><option value="pron">代词</option><option value="conj">连词</option><option value="prep">介词</option><option value="adv">副词</option><option value="v">动词</option><option value="adj">形容词</option><option value="n">名词</option></select></div>
+    <div class="word-scroll" id="list"></div>
+    <div class="pager" id="pager">
+      <button class="pager-btn" onclick="prevPage()">◀</button>
+      <span class="pager-info" id="page-info"></span>
+      <button class="pager-btn" onclick="nextPage()">▶</button>
+      <span class="pager-info" style="margin-left:6px;">跳至</span>
+      <input class="setting-input" type="number" min="1" id="jump-page" style="width:44px;font-size:11px;padding:4px 6px;" onkeydown="if(event.key==='Enter')jumpPage()">
+      <button class="pager-btn" onclick="jumpPage()" style="padding:4px 10px;font-size:11px;">GO</button>
+    </div>
+  </div>
+  <div class="pane" id="pane-add">
+    <div class="add-field"><label>英文单词 *</label><input placeholder="serendipity" id="ae"></div>
+    <div class="add-field"><label>中文释义 *</label><input placeholder="意外发现的美好" id="az"></div>
+    <div class="add-row"><div class="add-field"><label>音标</label><input placeholder="/sɛrənˈdɪpəti/" id="ap"></div><div class="add-field"><label>词性</label><input placeholder="n." id="apos" value="n."></div></div>
+    <div class="add-field"><label>例句（英文）</label><textarea placeholder="It was pure serendipity." id="ax"></textarea></div>
+    <div class="add-field"><label>例句（中文）</label><textarea placeholder="这纯粹是意外之喜。" id="axz"></textarea></div>
+    <button class="btn-submit" onclick="addWord()">添加单词</button>
+    <button class="btn-reset" onclick="resetAll()">🔄 重置全部数据</button>
+  </div>
+</div>
+<script>console.log('JS loaded');const SPACED=[0,1,3,7,16,35];const LVL=['新','1d','3d','7d','16d','掌握'];
+function ls(k,v){return v===undefined?JSON.parse(localStorage.getItem(k)||'null'):localStorage.setItem(k,JSON.stringify(v))}
+const EMBEDDED=[
+  {"en": "be", "zh": "是", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I want to be a doctor.", "phonetic": "/bi/", "pos": "v.", "example_zh": "我想当医生。"},
+  {"en": "have", "zh": "有", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I have two brothers.", "phonetic": "/hæv/", "pos": "v.", "example_zh": "我有两个兄弟。"},
+  {"en": "do", "zh": "做", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "What do you do?", "phonetic": "/du/", "pos": "v.", "example_zh": "你是做什么的？"},
+  {"en": "go", "zh": "去", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Let's go to the park.", "phonetic": "/goʊ/", "pos": "v.", "example_zh": "我们去公园吧。"},
+  {"en": "come", "zh": "来", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Please come here.", "phonetic": "/kʌm/", "pos": "v.", "example_zh": "请过来。"},
+  {"en": "get", "zh": "得到", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Did you get my message?", "phonetic": "/gɛt/", "pos": "v.", "example_zh": "你收到我的消息了吗？"},
+  {"en": "make", "zh": "制作", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "She can make a cake.", "phonetic": "/meɪk/", "pos": "v.", "example_zh": "她会做蛋糕。"},
+  {"en": "take", "zh": "拿", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Take this umbrella with you.", "phonetic": "/teɪk/", "pos": "v.", "example_zh": "带上这把伞。"},
+  {"en": "give", "zh": "给", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Give me a minute.", "phonetic": "/gɪv/", "pos": "v.", "example_zh": "给我一分钟。"},
+  {"en": "see", "zh": "看见", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I can see the mountain.", "phonetic": "/si/", "pos": "v.", "example_zh": "我能看见那座山。"},
+  {"en": "look", "zh": "看", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Look at that bird!", "phonetic": "/lʊk/", "pos": "v.", "example_zh": "看那只鸟！"},
+  {"en": "say", "zh": "说", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "What did you say?", "phonetic": "/seɪ/", "pos": "v.", "example_zh": "你说了什么？"},
+  {"en": "tell", "zh": "告诉", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Tell me the truth.", "phonetic": "/tɛl/", "pos": "v.", "example_zh": "告诉我真相。"},
+  {"en": "speak", "zh": "说话", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Can you speak slowly?", "phonetic": "/spik/", "pos": "v.", "example_zh": "你能说慢点吗？"},
+  {"en": "know", "zh": "知道", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I know the answer.", "phonetic": "/noʊ/", "pos": "v.", "example_zh": "我知道答案。"},
+  {"en": "think", "zh": "想", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I think it's a good idea.", "phonetic": "/θɪŋk/", "pos": "v.", "example_zh": "我觉得这是个好主意。"},
+  {"en": "want", "zh": "想要", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I want a cup of tea.", "phonetic": "/wɑnt/", "pos": "v.", "example_zh": "我想要一杯茶。"},
+  {"en": "need", "zh": "需要", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We need more time.", "phonetic": "/nid/", "pos": "v.", "example_zh": "我们需要更多时间。"},
+  {"en": "like", "zh": "喜欢", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I like this song.", "phonetic": "/laɪk/", "pos": "v.", "example_zh": "我喜欢这首歌。"},
+  {"en": "love", "zh": "爱", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I love my family.", "phonetic": "/lʌv/", "pos": "v.", "example_zh": "我爱我的家人。"},
+  {"en": "eat", "zh": "吃", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We eat dinner at seven.", "phonetic": "/it/", "pos": "v.", "example_zh": "我们七点吃晚饭。"},
+  {"en": "drink", "zh": "喝", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Drink more water.", "phonetic": "/drɪŋk/", "pos": "v.", "example_zh": "多喝水。"},
+  {"en": "sleep", "zh": "睡觉", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I sleep eight hours a day.", "phonetic": "/slip/", "pos": "v.", "example_zh": "我每天睡八小时。"},
+  {"en": "play", "zh": "玩", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The children play outside.", "phonetic": "/pleɪ/", "pos": "v.", "example_zh": "孩子们在外面玩。"},
+  {"en": "run", "zh": "跑", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "He runs every morning.", "phonetic": "/rʌn/", "pos": "v.", "example_zh": "他每天早上跑步。"},
+  {"en": "walk", "zh": "走", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I walk to school.", "phonetic": "/wɔk/", "pos": "v.", "example_zh": "我走路去学校。"},
+  {"en": "buy", "zh": "买", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I want to buy a gift.", "phonetic": "/baɪ/", "pos": "v.", "example_zh": "我想买个礼物。"},
+  {"en": "sell", "zh": "卖", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "They sell fresh fruit.", "phonetic": "/sɛl/", "pos": "v.", "example_zh": "他们卖新鲜水果。"},
+  {"en": "open", "zh": "打开", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Open the window, please.", "phonetic": "/ˈoʊpən/", "pos": "v.", "example_zh": "请打开窗户。"},
+  {"en": "put", "zh": "放", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Put the book on the table.", "phonetic": "/pʊt/", "pos": "v.", "example_zh": "把书放在桌上。"},
+  {"en": "find", "zh": "找到", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I can't find my keys.", "phonetic": "/faɪnd/", "pos": "v.", "example_zh": "我找不到钥匙。"},
+  {"en": "lose", "zh": "丢失", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Don't lose your ticket.", "phonetic": "/luz/", "pos": "v.", "example_zh": "别丢了你的票。"},
+  {"en": "keep", "zh": "保持", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Keep the change.", "phonetic": "/kip/", "pos": "v.", "example_zh": "零钱不用找了。"},
+  {"en": "leave", "zh": "离开", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We leave at noon.", "phonetic": "/liv/", "pos": "v.", "example_zh": "我们中午离开。"},
+  {"en": "bring", "zh": "带来", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Bring your friend along.", "phonetic": "/brɪŋ/", "pos": "v.", "example_zh": "带你的朋友一起来。"},
+  {"en": "ask", "zh": "问", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "May I ask a question?", "phonetic": "/æsk/", "pos": "v.", "example_zh": "我能问个问题吗？"},
+  {"en": "help", "zh": "帮助", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Can you help me?", "phonetic": "/hɛlp/", "pos": "v.", "example_zh": "你能帮我吗？"},
+  {"en": "meet", "zh": "遇见", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Nice to meet you.", "phonetic": "/mit/", "pos": "v.", "example_zh": "很高兴认识你。"},
+  {"en": "wait", "zh": "等待", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Wait for me here.", "phonetic": "/weɪt/", "pos": "v.", "example_zh": "在这里等我。"},
+  {"en": "start", "zh": "开始", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Let's start the meeting.", "phonetic": "/stɑrt/", "pos": "v.", "example_zh": "我们开始开会吧。"},
+  {"en": "stop", "zh": "停止", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Stop at the red light.", "phonetic": "/stɑp/", "pos": "v.", "example_zh": "红灯时停下。"},
+  {"en": "finish", "zh": "完成", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I finish work at six.", "phonetic": "/ˈfɪnɪʃ/", "pos": "v.", "example_zh": "我六点下班。"},
+  {"en": "try", "zh": "尝试", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Try this delicious soup.", "phonetic": "/traɪ/", "pos": "v.", "example_zh": "尝尝这美味的汤。"},
+  {"en": "read", "zh": "阅读", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I read books every night.", "phonetic": "/rid/", "pos": "v.", "example_zh": "我每晚读书。"},
+  {"en": "write", "zh": "写", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Write your name here.", "phonetic": "/raɪt/", "pos": "v.", "example_zh": "在这里写你的名字。"},
+  {"en": "listen", "zh": "听", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Listen to the music.", "phonetic": "/ˈlɪsən/", "pos": "v.", "example_zh": "听音乐。"},
+  {"en": "hear", "zh": "听见", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Can you hear me?", "phonetic": "/hɪr/", "pos": "v.", "example_zh": "你能听见我吗？"},
+  {"en": "watch", "zh": "观看", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We watch TV together.", "phonetic": "/wɑtʃ/", "pos": "v.", "example_zh": "我们一起看电视。"},
+  {"en": "wash", "zh": "洗", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Wash your hands first.", "phonetic": "/wɑʃ/", "pos": "v.", "example_zh": "先洗手。"},
+  {"en": "cook", "zh": "做饭", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "My father cooks dinner.", "phonetic": "/kʊk/", "pos": "v.", "example_zh": "我爸爸做晚饭。"},
+  {"en": "drive", "zh": "开车", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "He drives to work.", "phonetic": "/draɪv/", "pos": "v.", "example_zh": "他开车上班。"},
+  {"en": "send", "zh": "发送", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Send me an email.", "phonetic": "/sɛnd/", "pos": "v.", "example_zh": "给我发邮件。"},
+  {"en": "pay", "zh": "付钱", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I pay by phone.", "phonetic": "/peɪ/", "pos": "v.", "example_zh": "我用手机付款。"},
+  {"en": "cost", "zh": "花费", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "It costs ten dollars.", "phonetic": "/kɔst/", "pos": "v.", "example_zh": "它要十美元。"},
+  {"en": "live", "zh": "生活", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "They live in a big city.", "phonetic": "/lɪv/", "pos": "v.", "example_zh": "他们住在大城市。"},
+  {"en": "feel", "zh": "感觉", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I feel happy today.", "phonetic": "/fil/", "pos": "v.", "example_zh": "我今天感觉很开心。"},
+  {"en": "learn", "zh": "学习", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I learn English every day.", "phonetic": "/lɜrn/", "pos": "v.", "example_zh": "我每天学英语。"},
+  {"en": "close", "zh": "关", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Close the door quietly.", "phonetic": "/kloʊz/", "pos": "v.", "example_zh": "轻轻关门。"},
+  {"en": "sit", "zh": "坐", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Please sit down.", "phonetic": "/sɪt/", "pos": "v.", "example_zh": "请坐。"},
+  {"en": "stand", "zh": "站", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Stand up, please.", "phonetic": "/stænd/", "pos": "v.", "example_zh": "请站起来。"},
+  {"en": "turn", "zh": "转动", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Turn left at the corner.", "phonetic": "/tɜrn/", "pos": "v.", "example_zh": "在拐角处左转。"},
+  {"en": "move", "zh": "移动", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We move to a new house.", "phonetic": "/muv/", "pos": "v.", "example_zh": "我们搬去新房子。"},
+  {"en": "change", "zh": "改变", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Change your clothes.", "phonetic": "/tʃeɪndʒ/", "pos": "v.", "example_zh": "换衣服。"},
+  {"en": "call", "zh": "打电话", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Call me tonight.", "phonetic": "/kɔl/", "pos": "v.", "example_zh": "今晚给我打电话。"},
+  {"en": "show", "zh": "展示", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Show me your photo.", "phonetic": "/ʃoʊ/", "pos": "v.", "example_zh": "给我看你的照片。"},
+  {"en": "hold", "zh": "拿住", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Hold my hand.", "phonetic": "/hoʊld/", "pos": "v.", "example_zh": "握住我的手。"},
+  {"en": "carry", "zh": "携带", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Carry the bag for me.", "phonetic": "/ˈkæri/", "pos": "v.", "example_zh": "帮我拿包。"},
+  {"en": "forget", "zh": "忘记", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Don't forget your keys.", "phonetic": "/fərˈgɛt/", "pos": "v.", "example_zh": "别忘了你的钥匙。"},
+  {"en": "remember", "zh": "记得", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Remember to call me.", "phonetic": "/rɪˈmɛmbər/", "pos": "v.", "example_zh": "记得给我打电话。"},
+  {"en": "understand", "zh": "理解", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I understand you now.", "phonetic": "/ˌʌndərˈstænd/", "pos": "v.", "example_zh": "我现在理解你了。"},
+  {"en": "believe", "zh": "相信", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I believe you.", "phonetic": "/bɪˈliv/", "pos": "v.", "example_zh": "我相信你。"},
+  {"en": "hope", "zh": "希望", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I hope you feel better.", "phonetic": "/hoʊp/", "pos": "v.", "example_zh": "我希望你好起来。"},
+  {"en": "stay", "zh": "停留", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Stay here with me.", "phonetic": "/steɪ/", "pos": "v.", "example_zh": "和我待在这里。"},
+  {"en": "become", "zh": "变成", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "She wants to become a nurse.", "phonetic": "/bɪˈkʌm/", "pos": "v.", "example_zh": "她想当护士。"},
+  {"en": "grow", "zh": "生长", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Flowers grow in spring.", "phonetic": "/groʊ/", "pos": "v.", "example_zh": "花在春天生长。"},
+  {"en": "die", "zh": "死", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The old tree died.", "phonetic": "/daɪ/", "pos": "v.", "example_zh": "那棵老树死了。"},
+  {"en": "break", "zh": "打破", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Don't break the glass.", "phonetic": "/breɪk/", "pos": "v.", "example_zh": "别打破玻璃。"},
+  {"en": "work", "zh": "工作", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I work from home.", "phonetic": "/wɜrk/", "pos": "v.", "example_zh": "我在家工作。"},
+  {"en": "answer", "zh": "回答", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Please answer my question.", "phonetic": "/ˈænsər/", "pos": "v.", "example_zh": "请回答我的问题。"},
+  {"en": "clean", "zh": "打扫", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I clean my room on Sunday.", "phonetic": "/klin/", "pos": "v.", "example_zh": "我周日打扫房间。"},
+  {"en": "time", "zh": "时间", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "What time is it now?", "phonetic": "/taɪm/", "pos": "n.", "example_zh": "现在几点了？"},
+  {"en": "day", "zh": "天", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Have a nice day!", "phonetic": "/deɪ/", "pos": "n.", "example_zh": "祝你今天愉快！"},
+  {"en": "money", "zh": "钱", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I need some money.", "phonetic": "/ˈmʌni/", "pos": "n.", "example_zh": "我需要一些钱。"},
+  {"en": "water", "zh": "水", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "A glass of water, please.", "phonetic": "/ˈwɔtər/", "pos": "n.", "example_zh": "请给我一杯水。"},
+  {"en": "food", "zh": "食物", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The food is delicious.", "phonetic": "/fud/", "pos": "n.", "example_zh": "食物很好吃。"},
+  {"en": "house", "zh": "房子", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "They bought a new house.", "phonetic": "/haʊs/", "pos": "n.", "example_zh": "他们买了新房子。"},
+  {"en": "home", "zh": "家", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I'm going home now.", "phonetic": "/hoʊm/", "pos": "n.", "example_zh": "我现在回家。"},
+  {"en": "family", "zh": "家庭", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I love my family.", "phonetic": "/ˈfæməli/", "pos": "n.", "example_zh": "我爱我的家人。"},
+  {"en": "friend", "zh": "朋友", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "She is my best friend.", "phonetic": "/frɛnd/", "pos": "n.", "example_zh": "她是我最好的朋友。"},
+  {"en": "people", "zh": "人们", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Many people like music.", "phonetic": "/ˈpipəl/", "pos": "n.", "example_zh": "许多人喜欢音乐。"},
+  {"en": "man", "zh": "男人", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "That man is my uncle.", "phonetic": "/mæn/", "pos": "n.", "example_zh": "那个男人是我叔叔。"},
+  {"en": "woman", "zh": "女人", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The woman is a doctor.", "phonetic": "/ˈwʊmən/", "pos": "n.", "example_zh": "那个女人是医生。"},
+  {"en": "child", "zh": "孩子", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The child is playing.", "phonetic": "/tʃaɪld/", "pos": "n.", "example_zh": "孩子在玩耍。"},
+  {"en": "school", "zh": "学校", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I go to school by bus.", "phonetic": "/skul/", "pos": "n.", "example_zh": "我坐公交去学校。"},
+  {"en": "car", "zh": "汽车", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "He drives a red car.", "phonetic": "/kɑr/", "pos": "n.", "example_zh": "他开一辆红色汽车。"},
+  {"en": "phone", "zh": "电话", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "My phone is ringing.", "phonetic": "/foʊn/", "pos": "n.", "example_zh": "我的电话在响。"},
+  {"en": "door", "zh": "门", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Please close the door.", "phonetic": "/dɔr/", "pos": "n.", "example_zh": "请关门。"},
+  {"en": "room", "zh": "房间", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "My room is clean.", "phonetic": "/rum/", "pos": "n.", "example_zh": "我的房间很干净。"},
+  {"en": "table", "zh": "桌子", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Dinner is on the table.", "phonetic": "/ˈteɪbəl/", "pos": "n.", "example_zh": "晚饭在桌上。"},
+  {"en": "book", "zh": "书", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "This book is interesting.", "phonetic": "/bʊk/", "pos": "n.", "example_zh": "这本书很有趣。"},
+  {"en": "hand", "zh": "手", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Wash your hands.", "phonetic": "/hænd/", "pos": "n.", "example_zh": "洗手。"},
+  {"en": "eye", "zh": "眼睛", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "She has beautiful eyes.", "phonetic": "/aɪ/", "pos": "n.", "example_zh": "她有美丽的眼睛。"},
+  {"en": "head", "zh": "头", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "My head hurts.", "phonetic": "/hɛd/", "pos": "n.", "example_zh": "我头疼。"},
+  {"en": "street", "zh": "街道", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The street is busy.", "phonetic": "/strit/", "pos": "n.", "example_zh": "街道很繁忙。"},
+  {"en": "city", "zh": "城市", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Beijing is a big city.", "phonetic": "/ˈsɪti/", "pos": "n.", "example_zh": "北京是个大城市。"},
+  {"en": "market", "zh": "市场", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I buy vegetables at the market.", "phonetic": "/ˈmɑrkɪt/", "pos": "n.", "example_zh": "我在市场买蔬菜。"},
+  {"en": "price", "zh": "价格", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The price is too high.", "phonetic": "/praɪs/", "pos": "n.", "example_zh": "价格太高了。"},
+  {"en": "shop", "zh": "商店", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The shop opens at nine.", "phonetic": "/ʃɑp/", "pos": "n.", "example_zh": "商店九点开门。"},
+  {"en": "doctor", "zh": "医生", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "You should see a doctor.", "phonetic": "/ˈdɑktər/", "pos": "n.", "example_zh": "你应该看医生。"},
+  {"en": "thing", "zh": "东西", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "What is that thing?", "phonetic": "/θɪŋ/", "pos": "n.", "example_zh": "那是什么东西？"},
+  {"en": "world", "zh": "世界", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The world is big.", "phonetic": "/wɜrld/", "pos": "n.", "example_zh": "世界很大。"},
+  {"en": "life", "zh": "生活", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Life is beautiful.", "phonetic": "/laɪf/", "pos": "n.", "example_zh": "生活是美好的。"},
+  {"en": "name", "zh": "名字", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "What's your name?", "phonetic": "/neɪm/", "pos": "n.", "example_zh": "你叫什么名字？"},
+  {"en": "place", "zh": "地方", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "This is a nice place.", "phonetic": "/pleɪs/", "pos": "n.", "example_zh": "这是个好地方。"},
+  {"en": "question", "zh": "问题", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I have a question.", "phonetic": "/ˈkwɛstʃən/", "pos": "n.", "example_zh": "我有个问题。"},
+  {"en": "problem", "zh": "麻烦", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "No problem!", "phonetic": "/ˈprɑbləm/", "pos": "n.", "example_zh": "没问题！"},
+  {"en": "idea", "zh": "想法", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "That's a good idea.", "phonetic": "/aɪˈdiə/", "pos": "n.", "example_zh": "那是个好主意。"},
+  {"en": "way", "zh": "方法", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "This is the right way.", "phonetic": "/weɪ/", "pos": "n.", "example_zh": "这是正确的方法。"},
+  {"en": "road", "zh": "路", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The road is long.", "phonetic": "/roʊd/", "pos": "n.", "example_zh": "路很长。"},
+  {"en": "weather", "zh": "天气", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The weather is nice today.", "phonetic": "/ˈwɛðər/", "pos": "n.", "example_zh": "今天天气很好。"},
+  {"en": "night", "zh": "夜晚", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Good night!", "phonetic": "/naɪt/", "pos": "n.", "example_zh": "晚安！"},
+  {"en": "morning", "zh": "早上", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Good morning!", "phonetic": "/ˈmɔrnɪŋ/", "pos": "n.", "example_zh": "早上好！"},
+  {"en": "face", "zh": "脸", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Wash your face.", "phonetic": "/feɪs/", "pos": "n.", "example_zh": "洗脸。"},
+  {"en": "mouth", "zh": "嘴", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Open your mouth.", "phonetic": "/maʊθ/", "pos": "n.", "example_zh": "张开嘴。"},
+  {"en": "hair", "zh": "头发", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "She has long hair.", "phonetic": "/hɛr/", "pos": "n.", "example_zh": "她有长头发。"},
+  {"en": "clothes", "zh": "衣服", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I need new clothes.", "phonetic": "/kloʊðz/", "pos": "n.", "example_zh": "我需要新衣服。"},
+  {"en": "shirt", "zh": "衬衫", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "This shirt is too small.", "phonetic": "/ʃɜrt/", "pos": "n.", "example_zh": "这件衬衫太小了。"},
+  {"en": "shoes", "zh": "鞋", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "These shoes are comfortable.", "phonetic": "/ʃuz/", "pos": "n.", "example_zh": "这双鞋很舒服。"},
+  {"en": "bread", "zh": "面包", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I eat bread for breakfast.", "phonetic": "/brɛd/", "pos": "n.", "example_zh": "我早餐吃面包。"},
+  {"en": "meat", "zh": "肉", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Do you eat meat?", "phonetic": "/mit/", "pos": "n.", "example_zh": "你吃肉吗？"},
+  {"en": "rice", "zh": "米饭", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We eat rice every day.", "phonetic": "/raɪs/", "pos": "n.", "example_zh": "我们每天吃米饭。"},
+  {"en": "milk", "zh": "牛奶", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I drink milk every morning.", "phonetic": "/mɪlk/", "pos": "n.", "example_zh": "我每天早上喝牛奶。"},
+  {"en": "egg", "zh": "鸡蛋", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I eat an egg for breakfast.", "phonetic": "/ɛg/", "pos": "n.", "example_zh": "我早餐吃一个鸡蛋。"},
+  {"en": "tea", "zh": "茶", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Would you like some tea?", "phonetic": "/ti/", "pos": "n.", "example_zh": "你想喝茶吗？"},
+  {"en": "coffee", "zh": "咖啡", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I drink coffee every day.", "phonetic": "/ˈkɔfi/", "pos": "n.", "example_zh": "我每天喝咖啡。"},
+  {"en": "fruit", "zh": "水果", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Eat more fruit.", "phonetic": "/frut/", "pos": "n.", "example_zh": "多吃水果。"},
+  {"en": "vegetable", "zh": "蔬菜", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Vegetables are healthy.", "phonetic": "/ˈvɛdʒtəbəl/", "pos": "n.", "example_zh": "蔬菜很健康。"},
+  {"en": "fish", "zh": "鱼", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I like to eat fish.", "phonetic": "/fɪʃ/", "pos": "n.", "example_zh": "我喜欢吃鱼。"},
+  {"en": "chicken", "zh": "鸡肉", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We have chicken for dinner.", "phonetic": "/ˈtʃɪkɪn/", "pos": "n.", "example_zh": "我们晚饭吃鸡肉。"},
+  {"en": "restaurant", "zh": "餐厅", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Let's eat at that restaurant.", "phonetic": "/ˈrɛstərɑnt/", "pos": "n.", "example_zh": "我们去那家餐厅吃饭吧。"},
+  {"en": "hotel", "zh": "酒店", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We stayed at a hotel.", "phonetic": "/hoʊˈtɛl/", "pos": "n.", "example_zh": "我们住在一家酒店。"},
+  {"en": "hospital", "zh": "医院", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "He went to the hospital.", "phonetic": "/ˈhɑspɪtəl/", "pos": "n.", "example_zh": "他去了医院。"},
+  {"en": "bank", "zh": "银行", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I need to go to the bank.", "phonetic": "/bæŋk/", "pos": "n.", "example_zh": "我要去银行。"},
+  {"en": "office", "zh": "办公室", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "She works in an office.", "phonetic": "/ˈɔfɪs/", "pos": "n.", "example_zh": "她在办公室工作。"},
+  {"en": "teacher", "zh": "老师", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Our teacher is kind.", "phonetic": "/ˈtitʃər/", "pos": "n.", "example_zh": "我们的老师很和蔼。"},
+  {"en": "student", "zh": "学生", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "He is a good student.", "phonetic": "/ˈstudənt/", "pos": "n.", "example_zh": "他是个好学生。"},
+  {"en": "job", "zh": "工作", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "She found a new job.", "phonetic": "/dʒɑb/", "pos": "n.", "example_zh": "她找到了新工作。"},
+  {"en": "news", "zh": "新闻", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I watch the news every day.", "phonetic": "/nuz/", "pos": "n.", "example_zh": "我每天看新闻。"},
+  {"en": "music", "zh": "音乐", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I love listening to music.", "phonetic": "/ˈmjuzɪk/", "pos": "n.", "example_zh": "我爱听音乐。"},
+  {"en": "movie", "zh": "电影", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Let's watch a movie.", "phonetic": "/ˈmuvi/", "pos": "n.", "example_zh": "我们看电影吧。"},
+  {"en": "game", "zh": "游戏", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We play games together.", "phonetic": "/geɪm/", "pos": "n.", "example_zh": "我们一起玩游戏。"},
+  {"en": "story", "zh": "故事", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Tell me a story.", "phonetic": "/ˈstɔri/", "pos": "n.", "example_zh": "给我讲个故事。"},
+  {"en": "word", "zh": "单词", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I learn new words every day.", "phonetic": "/wɜrd/", "pos": "n.", "example_zh": "我每天学新单词。"},
+  {"en": "language", "zh": "语言", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "English is a useful language.", "phonetic": "/ˈlæŋgwɪdʒ/", "pos": "n.", "example_zh": "英语是门有用的语言。"},
+  {"en": "country", "zh": "国家", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "China is a big country.", "phonetic": "/ˈkʌntri/", "pos": "n.", "example_zh": "中国是个大国。"},
+  {"en": "animal", "zh": "动物", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The panda is a cute animal.", "phonetic": "/ˈænɪməl/", "pos": "n.", "example_zh": "熊猫是可爱的动物。"},
+  {"en": "dog", "zh": "狗", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I have a little dog.", "phonetic": "/dɔg/", "pos": "n.", "example_zh": "我有一只小狗。"},
+  {"en": "cat", "zh": "猫", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The cat is sleeping.", "phonetic": "/kæt/", "pos": "n.", "example_zh": "猫在睡觉。"},
+  {"en": "tree", "zh": "树", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The tree is very tall.", "phonetic": "/tri/", "pos": "n.", "example_zh": "这棵树很高。"},
+  {"en": "flower", "zh": "花", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The flowers are beautiful.", "phonetic": "/ˈflaʊər/", "pos": "n.", "example_zh": "这些花很美。"},
+  {"en": "mountain", "zh": "山", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We climbed the mountain.", "phonetic": "/ˈmaʊntən/", "pos": "n.", "example_zh": "我们爬了山。"},
+  {"en": "river", "zh": "河", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The river is clean.", "phonetic": "/ˈrɪvər/", "pos": "n.", "example_zh": "这条河很干净。"},
+  {"en": "sea", "zh": "海", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I love the blue sea.", "phonetic": "/si/", "pos": "n.", "example_zh": "我爱蓝色的大海。"},
+  {"en": "sun", "zh": "太阳", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The sun is shining.", "phonetic": "/sʌn/", "pos": "n.", "example_zh": "太阳在照耀。"},
+  {"en": "rain", "zh": "雨", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The rain is heavy today.", "phonetic": "/reɪn/", "pos": "n.", "example_zh": "今天雨很大。"},
+  {"en": "week", "zh": "星期", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "See you next week.", "phonetic": "/wik/", "pos": "n.", "example_zh": "下周见。"},
+  {"en": "year", "zh": "年", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Happy new year!", "phonetic": "/jɪr/", "pos": "n.", "example_zh": "新年快乐！"},
+  {"en": "hour", "zh": "小时", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "It takes one hour.", "phonetic": "/ˈaʊər/", "pos": "n.", "example_zh": "这要花一小时。"},
+  {"en": "good", "zh": "好的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "This is a good book.", "phonetic": "/gʊd/", "pos": "adj.", "example_zh": "这是一本好书。"},
+  {"en": "bad", "zh": "坏的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The weather is bad today.", "phonetic": "/bæd/", "pos": "adj.", "example_zh": "今天天气很糟。"},
+  {"en": "big", "zh": "大的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "They live in a big house.", "phonetic": "/bɪg/", "pos": "adj.", "example_zh": "他们住在大房子里。"},
+  {"en": "small", "zh": "小的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I have a small gift for you.", "phonetic": "/smɔl/", "pos": "adj.", "example_zh": "我有个小礼物给你。"},
+  {"en": "new", "zh": "新的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I bought a new phone.", "phonetic": "/nu/", "pos": "adj.", "example_zh": "我买了部新手机。"},
+  {"en": "old", "zh": "老的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "This is an old building.", "phonetic": "/oʊld/", "pos": "adj.", "example_zh": "这是座老建筑。"},
+  {"en": "hot", "zh": "热的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The tea is very hot.", "phonetic": "/hɑt/", "pos": "adj.", "example_zh": "茶很烫。"},
+  {"en": "cold", "zh": "冷的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "It's cold outside.", "phonetic": "/koʊld/", "pos": "adj.", "example_zh": "外面很冷。"},
+  {"en": "happy", "zh": "开心的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I'm so happy today.", "phonetic": "/ˈhæpi/", "pos": "adj.", "example_zh": "我今天很开心。"},
+  {"en": "sad", "zh": "难过的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "She feels sad.", "phonetic": "/sæd/", "pos": "adj.", "example_zh": "她感到难过。"},
+  {"en": "beautiful", "zh": "美丽的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "What a beautiful view!", "phonetic": "/ˈbjutəfəl/", "pos": "adj.", "example_zh": "多么美丽的景色！"},
+  {"en": "ugly", "zh": "丑的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The old wall is ugly.", "phonetic": "/ˈʌgli/", "pos": "adj.", "example_zh": "那堵旧墙很丑。"},
+  {"en": "fast", "zh": "快的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "This is a fast car.", "phonetic": "/fæst/", "pos": "adj.", "example_zh": "这是辆快车。"},
+  {"en": "slow", "zh": "慢的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The train is slow.", "phonetic": "/sloʊ/", "pos": "adj.", "example_zh": "火车很慢。"},
+  {"en": "easy", "zh": "容易的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "This question is easy.", "phonetic": "/ˈizi/", "pos": "adj.", "example_zh": "这个问题很简单。"},
+  {"en": "hard", "zh": "难的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Math is hard for me.", "phonetic": "/hɑrd/", "pos": "adj.", "example_zh": "数学对我很难。"},
+  {"en": "high", "zh": "高的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The mountain is high.", "phonetic": "/haɪ/", "pos": "adj.", "example_zh": "山很高。"},
+  {"en": "low", "zh": "低的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The price is low.", "phonetic": "/loʊ/", "pos": "adj.", "example_zh": "价格很低。"},
+  {"en": "long", "zh": "长的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "She has long hair.", "phonetic": "/lɔŋ/", "pos": "adj.", "example_zh": "她有长头发。"},
+  {"en": "short", "zh": "短的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The movie is short.", "phonetic": "/ʃɔrt/", "pos": "adj.", "example_zh": "这部电影很短。"},
+  {"en": "right", "zh": "对的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Your answer is right.", "phonetic": "/raɪt/", "pos": "adj.", "example_zh": "你的答案是对的。"},
+  {"en": "wrong", "zh": "错的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "This is the wrong way.", "phonetic": "/rɔŋ/", "pos": "adj.", "example_zh": "这条路错了。"},
+  {"en": "rich", "zh": "富有的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "He is a rich man.", "phonetic": "/rɪtʃ/", "pos": "adj.", "example_zh": "他是个富人。"},
+  {"en": "poor", "zh": "穷的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The poor family needs help.", "phonetic": "/pʊr/", "pos": "adj.", "example_zh": "那个穷家庭需要帮助。"},
+  {"en": "dirty", "zh": "脏的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Your shoes are dirty.", "phonetic": "/ˈdɜrti/", "pos": "adj.", "example_zh": "你的鞋脏了。"},
+  {"en": "full", "zh": "满的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The cup is full.", "phonetic": "/fʊl/", "pos": "adj.", "example_zh": "杯子是满的。"},
+  {"en": "empty", "zh": "空的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The box is empty.", "phonetic": "/ˈɛmpti/", "pos": "adj.", "example_zh": "盒子是空的。"},
+  {"en": "tired", "zh": "累的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I'm tired after work.", "phonetic": "/ˈtaɪərd/", "pos": "adj.", "example_zh": "下班后我很累。"},
+  {"en": "busy", "zh": "忙的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "She is busy today.", "phonetic": "/ˈbɪzi/", "pos": "adj.", "example_zh": "她今天很忙。"},
+  {"en": "important", "zh": "重要的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "This is an important meeting.", "phonetic": "/ɪmˈpɔrtənt/", "pos": "adj.", "example_zh": "这是个重要会议。"},
+  {"en": "different", "zh": "不同的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We have different ideas.", "phonetic": "/ˈdɪfərənt/", "pos": "adj.", "example_zh": "我们有不同想法。"},
+  {"en": "same", "zh": "相同的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We wear the same shirt.", "phonetic": "/seɪm/", "pos": "adj.", "example_zh": "我们穿一样的衬衫。"},
+  {"en": "early", "zh": "早的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I get up early.", "phonetic": "/ˈɜrli/", "pos": "adj.", "example_zh": "我起得早。"},
+  {"en": "late", "zh": "晚的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Don't be late for class.", "phonetic": "/leɪt/", "pos": "adj.", "example_zh": "上课别迟到。"},
+  {"en": "young", "zh": "年轻的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "She looks young.", "phonetic": "/jʌŋ/", "pos": "adj.", "example_zh": "她看起来很年轻。"},
+  {"en": "strong", "zh": "强壮的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "He is strong and healthy.", "phonetic": "/strɔŋ/", "pos": "adj.", "example_zh": "他强壮又健康。"},
+  {"en": "weak", "zh": "虚弱的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I feel weak today.", "phonetic": "/wik/", "pos": "adj.", "example_zh": "我今天感觉虚弱。"},
+  {"en": "cheap", "zh": "便宜的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "These apples are cheap.", "phonetic": "/tʃip/", "pos": "adj.", "example_zh": "这些苹果很便宜。"},
+  {"en": "expensive", "zh": "贵的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The watch is expensive.", "phonetic": "/ɪkˈspɛnsɪv/", "pos": "adj.", "example_zh": "这块表很贵。"},
+  {"en": "heavy", "zh": "重的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The box is heavy.", "phonetic": "/ˈhɛvi/", "pos": "adj.", "example_zh": "箱子很重。"},
+  {"en": "light", "zh": "轻的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "This bag is light.", "phonetic": "/laɪt/", "pos": "adj.", "example_zh": "这个包很轻。"},
+  {"en": "safe", "zh": "安全的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "This place is safe.", "phonetic": "/seɪf/", "pos": "adj.", "example_zh": "这个地方很安全。"},
+  {"en": "dangerous", "zh": "危险的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The road is dangerous.", "phonetic": "/ˈdeɪndʒərəs/", "pos": "adj.", "example_zh": "这条路很危险。"},
+  {"en": "sweet", "zh": "甜的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The cake is sweet.", "phonetic": "/swit/", "pos": "adj.", "example_zh": "蛋糕很甜。"},
+  {"en": "salty", "zh": "咸的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The soup is too salty.", "phonetic": "/ˈsɔlti/", "pos": "adj.", "example_zh": "汤太咸了。"},
+  {"en": "fresh", "zh": "新鲜的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The air is fresh.", "phonetic": "/frɛʃ/", "pos": "adj.", "example_zh": "空气很新鲜。"},
+  {"en": "ready", "zh": "准备好的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Dinner is ready.", "phonetic": "/ˈrɛdi/", "pos": "adj.", "example_zh": "晚饭好了。"},
+  {"en": "free", "zh": "自由的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The museum is free.", "phonetic": "/fri/", "pos": "adj.", "example_zh": "博物馆是免费的。"},
+  {"en": "true", "zh": "真实的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The story is true.", "phonetic": "/tru/", "pos": "adj.", "example_zh": "这个故事是真的。"},
+  {"en": "possible", "zh": "可能的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "It's possible to finish today.", "phonetic": "/ˈpɑsəbəl/", "pos": "adj.", "example_zh": "今天完成是可能的。"},
+  {"en": "special", "zh": "特别的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Today is a special day.", "phonetic": "/ˈspɛʃəl/", "pos": "adj.", "example_zh": "今天是特别的一天。"},
+  {"en": "healthy", "zh": "健康的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Eat healthy food.", "phonetic": "/ˈhɛlθi/", "pos": "adj.", "example_zh": "吃健康的食物。"},
+  {"en": "sick", "zh": "生病的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "She is sick today.", "phonetic": "/sɪk/", "pos": "adj.", "example_zh": "她今天生病了。"},
+  {"en": "hungry", "zh": "饿的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I'm very hungry.", "phonetic": "/ˈhʌŋgri/", "pos": "adj.", "example_zh": "我很饿。"},
+  {"en": "thirsty", "zh": "渴的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I'm thirsty.", "phonetic": "/ˈθɜrsti/", "pos": "adj.", "example_zh": "我渴了。"},
+  {"en": "angry", "zh": "生气的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Don't be angry.", "phonetic": "/ˈæŋgri/", "pos": "adj.", "example_zh": "别生气。"},
+  {"en": "afraid", "zh": "害怕的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I'm afraid of dogs.", "phonetic": "/əˈfreɪd/", "pos": "adj.", "example_zh": "我怕狗。"},
+  {"en": "surprised", "zh": "惊讶的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I'm surprised to see you.", "phonetic": "/sərˈpraɪzd/", "pos": "adj.", "example_zh": "见到你我真惊讶。"},
+  {"en": "interesting", "zh": "有趣的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The book is interesting.", "phonetic": "/ˈɪntrəstɪŋ/", "pos": "adj.", "example_zh": "这本书很有趣。"},
+  {"en": "quiet", "zh": "安静的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Keep quiet, please.", "phonetic": "/ˈkwaɪət/", "pos": "adj.", "example_zh": "请保持安静。"},
+  {"en": "noisy", "zh": "吵闹的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The street is noisy.", "phonetic": "/ˈnɔɪzi/", "pos": "adj.", "example_zh": "街道很吵闹。"},
+  {"en": "bright", "zh": "明亮的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The room is bright.", "phonetic": "/braɪt/", "pos": "adj.", "example_zh": "房间很明亮。"},
+  {"en": "dark", "zh": "黑暗的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The room is dark.", "phonetic": "/dɑrk/", "pos": "adj.", "example_zh": "房间很暗。"},
+  {"en": "warm", "zh": "温暖的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The weather is warm.", "phonetic": "/wɔrm/", "pos": "adj.", "example_zh": "天气很暖和。"},
+  {"en": "cool", "zh": "凉爽的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The water is cool.", "phonetic": "/kul/", "pos": "adj.", "example_zh": "水很凉。"},
+  {"en": "kind", "zh": "善良的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "She is kind to everyone.", "phonetic": "/kaɪnd/", "pos": "adj.", "example_zh": "她对每个人都很善良。"},
+  {"en": "polite", "zh": "礼貌的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "He is a polite boy.", "phonetic": "/pəˈlaɪt/", "pos": "adj.", "example_zh": "他是个有礼貌的男孩。"},
+  {"en": "honest", "zh": "诚实的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Be honest with me.", "phonetic": "/ˈɑnɪst/", "pos": "adj.", "example_zh": "对我诚实。"},
+  {"en": "careful", "zh": "小心的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Be careful on the road.", "phonetic": "/ˈkɛrfəl/", "pos": "adj.", "example_zh": "路上要小心。"},
+  {"en": "very", "zh": "非常", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The movie is very good.", "phonetic": "/ˈvɛri/", "pos": "adv.", "example_zh": "这部电影非常好。"},
+  {"en": "really", "zh": "真的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I really like it.", "phonetic": "/ˈrɪəli/", "pos": "adv.", "example_zh": "我真的很喜欢。"},
+  {"en": "always", "zh": "总是", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "He is always late.", "phonetic": "/ˈɔlweɪz/", "pos": "adv.", "example_zh": "他总是迟到。"},
+  {"en": "never", "zh": "从不", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I never smoke.", "phonetic": "/ˈnɛvər/", "pos": "adv.", "example_zh": "我从不抽烟。"},
+  {"en": "often", "zh": "经常", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We often eat out.", "phonetic": "/ˈɔfən/", "pos": "adv.", "example_zh": "我们经常出去吃。"},
+  {"en": "now", "zh": "现在", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Do it now.", "phonetic": "/naʊ/", "pos": "adv.", "example_zh": "现在就做。"},
+  {"en": "today", "zh": "今天", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I'm busy today.", "phonetic": "/təˈdeɪ/", "pos": "adv.", "example_zh": "我今天很忙。"},
+  {"en": "here", "zh": "这里", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Come here, please.", "phonetic": "/hɪr/", "pos": "adv.", "example_zh": "请过来。"},
+  {"en": "there", "zh": "那里", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Put it over there.", "phonetic": "/ðɛr/", "pos": "adv.", "example_zh": "把它放那边。"},
+  {"en": "also", "zh": "也", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I also like tea.", "phonetic": "/ˈɔlsoʊ/", "pos": "adv.", "example_zh": "我也喜欢茶。"},
+  {"en": "too", "zh": "也", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I like it too.", "phonetic": "/tu/", "pos": "adv.", "example_zh": "我也喜欢。"},
+  {"en": "just", "zh": "刚刚", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I just arrived.", "phonetic": "/dʒʌst/", "pos": "adv.", "example_zh": "我刚到。"},
+  {"en": "only", "zh": "只有", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I only have ten dollars.", "phonetic": "/ˈoʊnli/", "pos": "adv.", "example_zh": "我只有十美元。"},
+  {"en": "still", "zh": "仍然", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "She is still working.", "phonetic": "/stɪl/", "pos": "adv.", "example_zh": "她还在工作。"},
+  {"en": "again", "zh": "再次", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Say it again, please.", "phonetic": "/əˈgɛn/", "pos": "adv.", "example_zh": "请再说一遍。"},
+  {"en": "together", "zh": "一起", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We study together.", "phonetic": "/təˈgɛðər/", "pos": "adv.", "example_zh": "我们一起学习。"},
+  {"en": "maybe", "zh": "也许", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Maybe it will rain.", "phonetic": "/ˈmeɪbi/", "pos": "adv.", "example_zh": "也许要下雨。"},
+  {"en": "usually", "zh": "通常", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I usually get up at seven.", "phonetic": "/ˈjuʒuəli/", "pos": "adv.", "example_zh": "我通常七点起床。"},
+  {"en": "sometimes", "zh": "有时", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Sometimes I cook dinner.", "phonetic": "/ˈsʌmtaɪmz/", "pos": "adv.", "example_zh": "有时我做晚饭。"},
+  {"en": "up", "zh": "向上", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Look up at the sky.", "phonetic": "/ʌp/", "pos": "adv.", "example_zh": "抬头看天空。"},
+  {"en": "down", "zh": "向下", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Sit down, please.", "phonetic": "/daʊn/", "pos": "adv.", "example_zh": "请坐下。"},
+  {"en": "quickly", "zh": "快速地", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "He runs quickly.", "phonetic": "/ˈkwɪkli/", "pos": "adv.", "example_zh": "他跑得很快。"},
+  {"en": "slowly", "zh": "慢慢地", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Please speak slowly.", "phonetic": "/ˈsloʊli/", "pos": "adv.", "example_zh": "请说慢点。"},
+  {"en": "in", "zh": "在…里", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The pen is in the box.", "phonetic": "/ɪn/", "pos": "prep.", "example_zh": "钢笔在盒子里。"},
+  {"en": "on", "zh": "在…上", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The book is on the table.", "phonetic": "/ɑn/", "pos": "prep.", "example_zh": "书在桌上。"},
+  {"en": "at", "zh": "在(时/地)", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I get up at seven.", "phonetic": "/æt/", "pos": "prep.", "example_zh": "我七点起床。"},
+  {"en": "to", "zh": "到", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I go to school.", "phonetic": "/tu/", "pos": "prep.", "example_zh": "我去学校。"},
+  {"en": "from", "zh": "从", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I'm from China.", "phonetic": "/frʌm/", "pos": "prep.", "example_zh": "我来自中国。"},
+  {"en": "with", "zh": "和…一起", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I live with my parents.", "phonetic": "/wɪð/", "pos": "prep.", "example_zh": "我和父母一起住。"},
+  {"en": "for", "zh": "为了", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "This gift is for you.", "phonetic": "/fɔr/", "pos": "prep.", "example_zh": "这个礼物是给你的。"},
+  {"en": "by", "zh": "通过", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I go to work by bus.", "phonetic": "/baɪ/", "pos": "prep.", "example_zh": "我坐公交上班。"},
+  {"en": "under", "zh": "在…下", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The cat is under the table.", "phonetic": "/ˈʌndər/", "pos": "prep.", "example_zh": "猫在桌子下面。"},
+  {"en": "behind", "zh": "在…后", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The park is behind the school.", "phonetic": "/bɪˈhaɪnd/", "pos": "prep.", "example_zh": "公园在学校后面。"},
+  {"en": "before", "zh": "在…前", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Wash hands before dinner.", "phonetic": "/bɪˈfɔr/", "pos": "prep.", "example_zh": "饭前洗手。"},
+  {"en": "after", "zh": "在…后", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We play after class.", "phonetic": "/ˈæftər/", "pos": "prep.", "example_zh": "我们课后玩。"},
+  {"en": "between", "zh": "在…间", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The shop is between the bank and the park.", "phonetic": "/bɪˈtwin/", "pos": "prep.", "example_zh": "商店在银行和公园之间。"},
+  {"en": "about", "zh": "关于", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "This book is about animals.", "phonetic": "/əˈbaʊt/", "pos": "prep.", "example_zh": "这本书是关于动物的。"},
+  {"en": "of", "zh": "…的", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "A cup of tea, please.", "phonetic": "/ʌv/", "pos": "prep.", "example_zh": "请来杯茶。"},
+  {"en": "and", "zh": "和", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I like apples and bananas.", "phonetic": "/ænd/", "pos": "conj.", "example_zh": "我喜欢苹果和香蕉。"},
+  {"en": "but", "zh": "但是", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I want to go, but I'm tired.", "phonetic": "/bʌt/", "pos": "conj.", "example_zh": "我想去，但我累了。"},
+  {"en": "because", "zh": "因为", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I'm late because of traffic.", "phonetic": "/bɪˈkɔz/", "pos": "conj.", "example_zh": "因为堵车我迟到了。"},
+  {"en": "if", "zh": "如果", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "If it rains, stay home.", "phonetic": "/ɪf/", "pos": "conj.", "example_zh": "如果下雨就待在家。"},
+  {"en": "or", "zh": "或者", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Do you want tea or coffee?", "phonetic": "/ɔr/", "pos": "conj.", "example_zh": "你要茶还是咖啡？"},
+  {"en": "so", "zh": "所以", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I was tired, so I slept.", "phonetic": "/soʊ/", "pos": "conj.", "example_zh": "我累了，所以睡了。"},
+  {"en": "when", "zh": "当…时", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Call me when you arrive.", "phonetic": "/wɛn/", "pos": "conj.", "example_zh": "你到了就给我打电话。"},
+  {"en": "while", "zh": "当…期间", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I read while waiting.", "phonetic": "/waɪl/", "pos": "conj.", "example_zh": "我边等边看书。"},
+  {"en": "although", "zh": "虽然", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Although it rained, we went out.", "phonetic": "/ɔlˈðoʊ/", "pos": "conj.", "example_zh": "虽然下雨了，我们还是出去了。"},
+  {"en": "unless", "zh": "除非", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "You'll miss it unless you hurry.", "phonetic": "/ʌnˈlɛs/", "pos": "conj.", "example_zh": "除非你快点，否则会错过。"},
+  {"en": "I", "zh": "我", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I am a student.", "phonetic": "/aɪ/", "pos": "pron.", "example_zh": "我是学生。"},
+  {"en": "you", "zh": "你", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "You are my friend.", "phonetic": "/ju/", "pos": "pron.", "example_zh": "你是我的朋友。"},
+  {"en": "he", "zh": "他", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "He is a doctor.", "phonetic": "/hi/", "pos": "pron.", "example_zh": "他是医生。"},
+  {"en": "she", "zh": "她", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "She is a teacher.", "phonetic": "/ʃi/", "pos": "pron.", "example_zh": "她是老师。"},
+  {"en": "it", "zh": "它", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "It is a cat.", "phonetic": "/ɪt/", "pos": "pron.", "example_zh": "它是一只猫。"},
+  {"en": "we", "zh": "我们", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We are happy.", "phonetic": "/wi/", "pos": "pron.", "example_zh": "我们很开心。"},
+  {"en": "they", "zh": "他们", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "They are my classmates.", "phonetic": "/ðeɪ/", "pos": "pron.", "example_zh": "他们是我的同学。"},
+  {"en": "this", "zh": "这个", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "This is my house.", "phonetic": "/ðɪs/", "pos": "pron.", "example_zh": "这是我的房子。"},
+  {"en": "that", "zh": "那个", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "That is a big tree.", "phonetic": "/ðæt/", "pos": "pron.", "example_zh": "那是一棵大树。"},
+  {"en": "one", "zh": "一个", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I have one apple.", "phonetic": "/wʌn/", "pos": "pron.", "example_zh": "我有一个苹果。"},
+  {"en": "fire", "zh": "火", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "Don't play with fire.", "phonetic": "/faɪr/", "pos": "n.", "example_zh": "别玩火。"},
+  {"en": "wind", "zh": "风", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The wind is strong today.", "phonetic": "/wɪnd/", "pos": "n.", "example_zh": "今天风很大。"},
+  {"en": "air", "zh": "空气", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "The air is fresh here.", "phonetic": "/ɛr/", "pos": "n.", "example_zh": "这里的空气很新鲜。"},
+  {"en": "earth", "zh": "地球", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "We live on the earth.", "phonetic": "/ɜrθ/", "pos": "n.", "example_zh": "我们生活在地球上。"},
+  {"en": "sound", "zh": "声音", "level": 0, "nextReview": 0, "timesReviewed": 0, "example": "I heard a strange sound.", "phonetic": "/saʊnd/", "pos": "n.", "example_zh": "我听到一个奇怪的声音。"}
+];
+const POS_LABELS={n:'名词',v:'动词',adj:'形容词',adv:'副词',prep:'介词',conj:'连词',pron:'代词',art:'冠词','int':'感叹词'};
+const POS_ORDER=['int','art','pron','conj','prep','adv','v','adj','n'];
+
+function load(){let w=ls('tbp_words');if(!w){w=JSON.parse(JSON.stringify(EMBEDDED));ls('tbp_words',w)}return w}
+function save(w){ls('tbp_words',w)}
+function streak(){var d=ls('tbp_streak')||{d:'',n:0};var t=dateKey();if(d.d===t)return d.n;var y=dateKey(-1);var n=d.d===y?d.n+1:1;ls('tbp_streak',{d:t,n});return n}
+function dateKey(off){var d=new Date();if(off)d.setDate(d.getDate()+off);return d.toISOString().slice(0,10)}
+
+function getTodayDetail(){
+  var today=dateKey();var d=ls('wv4_today_detail');
+  if(!d||d.date!==today)return {date:today,learned:[],reviewed:[]};
+  return d;
+}
+function addLearnedWord(wordEn){
+  var d=getTodayDetail();d.date=dateKey();
+  if(d.learned.indexOf(wordEn)===-1)d.learned.push(wordEn);
+  ls('wv4_today_detail',d);
+}
+function addReviewedWord(wordEn,result){
+  var d=getTodayDetail();d.date=dateKey();
+  var labels={0:'不认识',1:'模糊',2:'认识'};
+  d.reviewed.push({word:wordEn,result:labels[result]||'?'});
+  ls('wv4_today_detail',d);
+}
+
+function recordHistory(type,result){
+  var today=dateKey();var h=ls('wv4_history')||{};
+  if(!h[today])h[today]={learned:0,reviewed:0,correct:0,vague:0,wrong:0};
+  if(type==='learn')h[today].learned++;
+  if(type==='review'){h[today].reviewed++;if(result===2)h[today].correct++;else if(result===1)h[today].vague++;else h[today].wrong++;}
+  // Keep last 90 days
+  var keys=Object.keys(h).sort();while(keys.length>90){delete h[keys.shift()];}
+  ls('wv4_history',h);
+}
+function getHistory(){
+  var h=ls('wv4_history')||{};var today=dateKey();
+  var total={learned:0,reviewed:0,correct:0,vague:0,wrong:0,days:Object.keys(h).length};
+  for(var d in h){total.learned+=h[d].learned||0;total.reviewed+=h[d].reviewed||0;total.correct+=h[d].correct||0;total.vague+=h[d].vague||0;total.wrong+=h[d].wrong||0;}
+  var todayStats=h[today]||{learned:0,reviewed:0,correct:0,vague:0,wrong:0};
+  var last7=[];for(var i=6;i>=0;i--){var dk=dateKey(-i);if(h[dk])last7.push({date:dk.slice(5),s:h[dk]});else last7.push({date:dk.slice(5),s:{learned:0,reviewed:0}});}
+  return {today:todayStats,total:total,last7:last7};
+}
+
+function due(w){var today=dateKey();return w.filter(function(x){var rd=new Date(x.nextReview).toISOString().slice(0,10);return rd<=today})}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function nextDay(days){var d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+days);return d.getTime()}
+
+// Daily tracking
+function todayKey(){return 'wv4_today_'+dateKey()}
+function getTodayReviewed(){return ls(todayKey())||[]}
+function markToday(wordEn){var r=getTodayReviewed();if(r.indexOf(wordEn)===-1){r.push(wordEn);ls(todayKey(),r)}}
+function todayCount(){return getTodayReviewed().length}
+
+// Voice
+var selectedVoice=ls('tbp_voice')||'';
+var learnDaily=ls('tbp_learn')||20;
+var reviewDaily=ls('tbp_review')||20;
+var ttsRate=ls('tbp_rate')||1.0;
+function saveVoice(v){selectedVoice=v;ls('tbp_voice',v)}
+function saveLearn(n){n=parseInt(n)||20;n=Math.max(5,Math.min(200,n));learnDaily=n;ls('tbp_learn',n);renderLearn()}
+function saveReview(n){n=parseInt(n)||20;n=Math.max(5,Math.min(100,n));reviewDaily=n;ls('tbp_review',n);renderReview()}
+function saveRate(r){ttsRate=parseFloat(r)||1.0;ls('tbp_rate',ttsRate)}
+
+var cachedVoices=[];
+function loadVoices(){
+  cachedVoices=window.speechSynthesis.getVoices().filter(function(v){return v.lang.indexOf('en')===0});
+  if(cachedVoices.length===0)setTimeout(function(){cachedVoices=window.speechSynthesis.getVoices().filter(function(v){return v.lang.indexOf('en')===0})},100);
+  return cachedVoices;
+}
+function populateVoices(){
+  var sel=document.getElementById('so-voice');if(!sel)return;
+  var voices=loadVoices();if(voices.length===0){setTimeout(populateVoices,200);return}
+  voices.sort(function(a,b){
+    var aq=a.name.indexOf('Samantha')>=0||a.name.indexOf('Karen')>=0||a.name.indexOf('Daniel')>=0||a.name.indexOf('Moira')>=0||a.name.indexOf('Tessa')>=0;
+    var bq=b.name.indexOf('Samantha')>=0||b.name.indexOf('Karen')>=0||b.name.indexOf('Daniel')>=0||b.name.indexOf('Moira')>=0||b.name.indexOf('Tessa')>=0;
+    if(aq&&!bq)return -1;if(!aq&&bq)return 1;return a.name.localeCompare(b.name);
+  });
+  sel.innerHTML=voices.map(function(v){var s=selectedVoice===v.name?' selected':'';return '<option value="'+v.name+'"'+s+'>'+v.name+'</option>'}).join('');
+  if(!selectedVoice&&voices.length>0){var b=voices.filter(function(v){return v.name.indexOf('Samantha')>=0});selectedVoice=b.length?b[0].name:voices[0].name;saveVoice(selectedVoice)}
+}
+function speak(text,btnId,ev){
+  if(ev){ev.stopPropagation();ev.preventDefault();}
+  if(!window.speechSynthesis)return;window.speechSynthesis.cancel();
+  var u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=ttsRate;u.pitch=1.0;
+  var voices=cachedVoices.length>0?cachedVoices:loadVoices();
+  var vv=voices.filter(function(v){return v.name===selectedVoice});if(vv.length)u.voice=vv[0];
+  var btn=btnId?document.getElementById(btnId):null;if(btn)btn.classList.add('speaking');
+  u.onend=u.onerror=function(){if(btn)btn.classList.remove('speaking')};window.speechSynthesis.speak(u);
+}
+function speakSentenceCurrent(ev){
+  if(ev){ev.stopPropagation();ev.preventDefault();}
+  if(!learnCur||!learnCur.example||!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  var u=new SpeechSynthesisUtterance(learnCur.example);u.lang="en-US";u.rate=ttsRate;u.pitch=1.0;
+  var voices=cachedVoices.length>0?cachedVoices:loadVoices();
+  var vv=voices.filter(function(v){return v.name===selectedVoice});if(vv.length)u.voice=vv[0];
+  var btn=document.getElementById("lsev");if(btn)btn.classList.add("speaking");
+  u.onend=u.onerror=function(){if(btn)btn.classList.remove("speaking")};
+  window.speechSynthesis.speak(u);
+}
+
+function speakSm(btn,ev){
+  if(ev){ev.stopPropagation();ev.preventDefault();}
+  var text=btn.getAttribute('data-text');if(!text||!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(text);
+  u.lang='en-US';u.rate=ttsRate;u.pitch=1.0;
+  var voices=cachedVoices.length>0?cachedVoices:loadVoices();
+  var vv=voices.filter(function(v){return v.name===selectedVoice});if(vv.length)u.voice=vv[0];
+  btn.classList.add('speaking');u.onend=u.onerror=function(){btn.classList.remove('speaking')};
+  window.speechSynthesis.speak(u);
+}
+
+// Tab switching
+var currentTab='learn';
+function switchTab(name){
+  currentTab=name;
+  document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('on')});
+  var map={learn:0,review:1,words:2,add:3};
+  document.querySelectorAll('.nav-tab')[map[name]].classList.add('on');
+  document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('on');p.style.display='none';});
+  var ap=document.getElementById('pane-'+name);ap.classList.add('on');ap.style.display='flex';
+  if(name==='review'){reviewPool=[];renderReview();}if(name==='learn')renderLearn();if(name==='words')renderList();
+}
+
+function getPosClass(pos){if(!pos)return'other';var p=pos.replace('.','');return ['n','v','adj','adv','prep','conj','pron','art','int'].indexOf(p)>=0?p:'other';}
+
+// ═══ LEARN MODE with SPELLING ═══
+var learnCur=null;var learnAttempts=0;
+function renderLearn(){
+  var w=load();var td=getTodayReviewed();
+  var fresh=w.filter(function(x){return x.level===0 && x.timesReviewed===0});
+  if(fresh.length===0){document.getElementById('learn').innerHTML='<div class="done-state"><div class="emoji">🎓</div><h3>没有新词了！</h3><p>所有单词都至少学过一遍<br>去「复习」页面巩固吧</p></div>';return;}
+  shuffle(fresh);var pool=fresh.slice(0,learnDaily);
+  var doneAll=td.length;
+  if(doneAll>=pool.length){document.getElementById('learn').innerHTML='<div class="done-state"><div class="emoji">🎉</div><h3>今日新词学完了！</h3><p>已学 '+doneAll+'/'+pool.length+' 个</p></div>';return;}
+  learnCur=pool[doneAll];learnAttempts=0;
+  var dots='';for(var i=0;i<pool.length;i++){var cls='dot';if(i<doneAll)cls+=' done';if(i===doneAll)cls+=' cur';dots+='<div class="'+cls+'"></div>';}
+  var pc=getPosClass(learnCur.pos);
+  var el=document.getElementById('learn');
+  el.innerHTML='<div class="progress"><div class="n">'+(doneAll+1)+' / '+pool.length+'</div><div class="l">今日新词</div></div><div class="dots">'+dots+'</div><div class="card-scene"><div class="card-wrap"><div class="card" id="lfc" onclick="document.getElementById(\'lfc\').classList.toggle(\'flipped\')"><div class="card-face card-front"><span class="card-pos '+pc+'">'+(learnCur.pos||'')+'</span><div class="card-word">'+learnCur.en+'</div><div class="card-phonetic">'+(learnCur.phonetic||'')+'</div><button class="btn-voice" id="lvc" onclick="speak(\''+learnCur.en.replace(/'/g,"\\'")+'\',\'lvc\',event)">🔊</button><div class="card-hint">点击卡片查看释义</div></div><div class="card-face card-back"><div class="card-zh-main">'+learnCur.zh+'</div>'+(learnCur.example?'<div class="card-ex-block"><div class="card-ex-en">'+learnCur.example.replace(/"/g,'&quot;')+' <button class="btn-voice-sm" data-text="'+learnCur.example.replace(/"/g,'&quot;')+'" onclick="speakSm(this,event)">🔊</button></div>'+(learnCur.example_zh?'<div class="card-ex-zh">'+learnCur.example_zh+'</div>':'')+'</div>':'')+'<div class="spell-area" onclick="event.stopPropagation()">"+(learnCur.example?"<button class=\"btn-voice-card\" id=\"lsev\" onclick=\"speakSentenceCurrent(event)\" style=\"width:auto;max-width:220px;padding:8px 12px;border-radius:10px;font-size:11px;margin-bottom:6px;\">🔊 朗读例句</button>":"")+"<input class=\"spell-input\" id=\"si\" placeholder="输入英文拼写..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key===\'Enter\')learnCheck()"><div class="spell-feedback" id="sf"></div><button class="spell-btn" onclick="learnCheck()">✅ 检查</button></div></div></div></div></div><div class="actions"><button class="act act-yes" onclick="learnSkip()" style="opacity:.5;font-size:13px;">跳过此词 ▶</button></div>';
+  setTimeout(function(){var inp=document.getElementById('si');if(inp)inp.focus();},300);
+}
+function learnCheck(){
+  if(!learnCur)return;
+  var inp=document.getElementById('si');var fb=document.getElementById('sf');if(!inp||!fb)return;
+  var typed=inp.value.trim().replace(/\s+/g,' ');
+  if(typed.toLowerCase()===learnCur.en.toLowerCase()){
+    inp.classList.add('correct');fb.className='spell-feedback ok';fb.textContent='✅ 正确！';
+    setTimeout(function(){learnDone();},600);
+  }else{
+    learnAttempts++;inp.classList.add('wrong');fb.className='spell-feedback err';
+    if(learnAttempts>=3){
+      fb.textContent='答案是: '+learnCur.en;
+      fb.className='spell-feedback show';inp.value=learnCur.en;inp.disabled=true;inp.classList.add('correct');
+      var btn=document.querySelector('.spell-btn');if(btn){btn.textContent='知道了';btn.onclick=learnDone;}
+    }else{
+      fb.textContent='❌ 你输入了: '+typed+' · 再试一次 ('+learnAttempts+'/3)';inp.value='';
+      setTimeout(function(){inp.classList.remove('wrong');inp.focus();},400);
+    }
+  }
+}
+function learnDone(){
+  if(!learnCur)return;var w=load();var wi=w.find(function(x){return x.en===learnCur.en});if(!wi)return;
+  wi.level=1;wi.timesReviewed=1;wi.nextReview=nextDay(SPACED[1]);
+  markToday(wi.en);save(w);recordHistory('learn',2);addLearnedWord(wi.en);learnCur=null;learnAttempts=0;renderLearn();
+}
+function learnSkip(){
+  if(!learnCur)return;var w=load();var wi=w.find(function(x){return x.en===learnCur.en});if(!wi)return;
+  wi.level=1;wi.timesReviewed=1;wi.nextReview=nextDay(SPACED[1]);
+  markToday(wi.en);save(w);recordHistory('learn',2);addLearnedWord(wi.en);learnCur=null;learnAttempts=0;renderLearn();
+}
+
+// ═══ REVIEW MODE ═══
+var reviewCur=null;var reviewPool=[];var reviewAttempts=0;
+function renderReview(){
+  var w=load();var d=due(w);d=d.filter(function(x){return x.level>0 && x.timesReviewed>0});
+  if(d.length===0||reviewPool.length===0){
+    // First load or all done: build review pool
+    d.sort(function(a,b){return a.level-b.level;}); // lower levels first (more urgent)
+    shuffle(d); // then randomize within levels
+    reviewPool=d.slice(0,reviewDaily);
+  }
+  if(reviewPool.length===0){
+    var m=w.filter(function(x){return x.level===5}).length;
+    var learned=w.filter(function(x){return x.timesReviewed>0}).length;
+    document.getElementById('review').innerHTML='<div class="done-state"><div class="emoji">🎉</div><h3>复习全部完成！</h3><p>已学 '+learned+' 词 · 已掌握 '+m+' 词</p><div class="done-stats"><div class="done-stat"><div class="n" style="color:var(--green)">'+m+'</div><div class="l">已掌握</div></div><div class="done-stat"><div class="n" style="color:var(--purple)">'+streak()+'</div><div class="l">连续天</div></div><div class="done-stat"><div class="n" style="color:var(--blue)">'+w.length+'</div><div class="l">总词汇</div></div></div></div>';
+    return;
+  }
+  reviewCur=reviewPool[0];
+  var pc=getPosClass(reviewCur.pos);
+  var el=document.getElementById('review');
+  el.innerHTML='<div class="progress"><div class="n">1 / '+reviewPool.length+'</div><div class="l">今日复习 · '+LVL[reviewCur.level]+'</div></div><div class="card-scene"><div class="card-wrap"><div class="card" id="rfc" onclick="document.getElementById(\'rfc\').classList.toggle(\'flipped\')"><div class="card-face card-front"><span class="card-pos '+pc+'">'+(reviewCur.pos||'')+'</span><div class="card-word">'+reviewCur.en+'</div><div class="card-phonetic">'+(reviewCur.phonetic||'')+'</div><button class="btn-voice" id="rvc" onclick="speak(\''+reviewCur.en.replace(/'/g,"\\'")+'\',\'rvc\',event)">🔊</button><div class="card-hint">点击卡片查看释义</div></div><div class="card-face card-back"><div class="card-zh-main">'+reviewCur.zh+'</div>'+(reviewCur.example?'<div class="card-ex-block"><div class="card-ex-en">'+reviewCur.example.replace(/"/g,'&quot;')+' <button class="btn-voice-sm" data-text="'+reviewCur.example.replace(/"/g,'&quot;')+'" onclick="speakSm(this,event)">🔊</button></div>'+(reviewCur.example_zh?'<div class="card-ex-zh">'+reviewCur.example_zh+'</div>':'')+'</div>':'')+'<div class="card-meta">复习 '+reviewCur.timesReviewed+' 次 · '+LVL[reviewCur.level]+'</div><div class="spell-area" onclick="event.stopPropagation()" style="margin-top:8px;"><input class="spell-input" id="rsi" placeholder="输入英文拼写..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key===\'Enter\')reviewSpellCheck()"><div class="spell-feedback" id="rsf"></div><button class="spell-btn" onclick="reviewSpellCheck()">✅ 检查</button></div></div></div></div></div><div class="review-wordlist" id="rwl"></div><div class="actions"><button class="act act-no" onclick="reviewAnswer(0)">不认识</button><button class="act act-maybe" onclick="reviewAnswer(1)">模糊</button><button class="act act-yes" onclick="reviewAnswer(2)">认识</button></div>';
+}
+function buildReviewWordlist(){
+  var html='';var done=getTodayReviewed();
+  for(var i=0;i<reviewPool.length;i++){
+    var w=reviewPool[i];var cls='review-worditem';
+    if(i===0)cls+=' current';
+    if(done.indexOf(w.en)>=0)cls+=' done';
+    var lvlTag=['','1d','3d','7d','16d','OK'][w.level]||'?';
+    html+='<span class="'+cls+'">'+w.en+' <span style="opacity:0.5">'+lvlTag+'</span></span>';
+  }
+  return html;
+}
+function updateReviewWordlist(){
+  var el=document.getElementById('rwl');if(el)el.innerHTML=buildReviewWordlist();
+}
+
+function reviewAnswer(type){
+  if(!reviewCur)return;var w=load();var wi=w.find(function(x){return x.en===reviewCur.en});if(!wi)return;
+  if(type===0)wi.level=1;else if(type===1){} else wi.level=Math.min(5,wi.level+1);
+  wi.timesReviewed++;wi.nextReview=nextDay(SPACED[wi.level]);reviewAttempts=0;recordHistory('review',type);addReviewedWord(wi.en,type);
+  save(w);
+  // Remove from pool and show next
+  reviewPool.shift();updateReviewWordlist();
+  if(reviewPool.length>0){
+    reviewCur=reviewPool[0];
+    var pc=getPosClass(reviewCur.pos);
+    var el=document.getElementById('review');
+    el.innerHTML='<div class="progress"><div class="n">'+(reviewDaily-reviewPool.length+1)+' / '+reviewDaily+'</div><div class="l">今日复习 · '+LVL[reviewCur.level]+'</div></div><div class="card-scene"><div class="card-wrap"><div class="card" id="rfc" onclick="document.getElementById(\'rfc\').classList.toggle(\'flipped\')"><div class="card-face card-front"><span class="card-pos '+pc+'">'+(reviewCur.pos||'')+'</span><div class="card-word">'+reviewCur.en+'</div><div class="card-phonetic">'+(reviewCur.phonetic||'')+'</div><button class="btn-voice" id="rvc" onclick="speak(\''+reviewCur.en.replace(/'/g,"\\'")+'\',\'rvc\',event)">🔊</button><div class="card-hint">点击卡片查看释义</div></div><div class="card-face card-back"><div class="card-zh-main">'+reviewCur.zh+'</div>'+(reviewCur.example?'<div class="card-ex-block"><div class="card-ex-en">'+reviewCur.example.replace(/"/g,'&quot;')+' <button class="btn-voice-sm" data-text="'+reviewCur.example.replace(/"/g,'&quot;')+'" onclick="speakSm(this,event)">🔊</button></div>'+(reviewCur.example_zh?'<div class="card-ex-zh">'+reviewCur.example_zh+'</div>':'')+'</div>':'')+'<div class="card-meta">复习 '+reviewCur.timesReviewed+' 次 · '+LVL[reviewCur.level]+'</div><div class="spell-area" onclick="event.stopPropagation()" style="margin-top:8px;"><input class="spell-input" id="rsi" placeholder="输入英文拼写..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key===\'Enter\')reviewSpellCheck()"><div class="spell-feedback" id="rsf"></div><button class="spell-btn" onclick="reviewSpellCheck()">✅ 检查</button></div></div></div></div></div><div class="review-wordlist" id="rwl"></div><div class="actions"><button class="act act-no" onclick="reviewAnswer(0)">不认识</button><button class="act act-maybe" onclick="reviewAnswer(1)">模糊</button><button class="act act-yes" onclick="reviewAnswer(2)">认识</button></div>';
+  }else{
+    reviewCur=null;
+    renderReview();
+  }
+}
+var reviewSpellOK=false;
+function reviewSpellCheck(){
+  if(!reviewCur)return;
+  var inp=document.getElementById('rsi');var fb=document.getElementById('rsf');if(!inp||!fb)return;
+  var typed=inp.value.trim().replace(/\s+/g,' ');
+  if(typed.toLowerCase()===reviewCur.en.toLowerCase()){
+    inp.classList.add('correct');fb.className='spell-feedback ok';fb.textContent='✅ 正确！';
+    reviewSpellOK=true;
+    setTimeout(function(){reviewAnswer(2);reviewSpellOK=false;},600);
+  }else{
+    reviewAttempts++;inp.classList.add('wrong');fb.className='spell-feedback err';
+    if(reviewAttempts>=3){
+      fb.textContent='答案是: '+reviewCur.en;fb.className='spell-feedback show';
+      inp.value=reviewCur.en;inp.disabled=true;inp.classList.add('correct');
+      var btn=document.querySelector('#pane-review .spell-btn');
+      if(btn){btn.textContent='知道了';btn.onclick=function(){reviewAnswer(2);reviewSpellOK=false;};}
+    }else{
+      fb.textContent='❌ 你输入了: '+typed+' · 再试一次 ('+reviewAttempts+'/3)';inp.value='';
+      setTimeout(function(){inp.classList.remove('wrong');inp.focus();},400);
+    }
+  }
+}
+
+// ═══ WORD LIST with PAGINATION ═══
+var listPage=1;var PER_PAGE=30;
+function renderList(resetPage){
+  if(resetPage)listPage=1;
+  var w=load();var q=(document.getElementById('sq')||{}).value||'';q=q.toLowerCase();
+  var pf=(document.getElementById('pf')||{}).value||'all';
+  var f=q?w.filter(function(x){return x.en.toLowerCase().indexOf(q)>-1||x.zh.indexOf(q)>-1}):w;
+  if(pf!=='all'){f=f.filter(function(x){return (x.pos||'').replace('.','')===pf});}
+
+  // Build flat list with POS info
+  var groups={};f.forEach(function(x,i){var p=(x.pos||'?').replace('.','');if(!groups[p])groups[p]=[];groups[p].push({w:x,idx:w.indexOf(x)});});
+  var flatItems=[];
+  POS_ORDER.forEach(function(p){
+    if(!groups[p]||groups[p].length===0)return;
+    flatItems.push({type:'header',pos:p,count:groups[p].length});
+    groups[p].forEach(function(item){flatItems.push({type:'word',data:item});});
+  });
+
+  var totalPages=Math.max(1,Math.ceil((flatItems.length-POS_ORDER.filter(function(p){return groups[p]}).length)/PER_PAGE));
+  if(listPage>totalPages)listPage=totalPages;
+  if(listPage<1)listPage=1;
+
+  // Only show words, headers appear when needed
+  var start=(listPage-1)*PER_PAGE;var end=start+PER_PAGE;
+  var wordCount=0;var html='';var lastPos='';
+  for(var i=0;i<flatItems.length;i++){
+    var item=flatItems[i];
+    if(item.type==='header'){lastPos=item.pos;continue}
+    if(wordCount>=start&&wordCount<end){
+      // Show header if first word of this POS in this page
+      if(wordCount===start||flatItems[i-1]&&flatItems[i-1].type==='header'){
+        html+='<div class="pos-title">'+POS_LABELS[lastPos]+' ('+groups[lastPos].length+')</div>';
+      }
+      var x=item.data.w,idx=item.data.idx;
+      html+='<div class="word-item"><div style="min-width:0;"><div class="en">'+x.en+'<span class="ph">'+(x.phonetic||'')+'</span></div><div class="zh">'+x.zh+'</div>'+(x.example?'<div class="ex-line">'+x.example+(x.example_zh?' · '+x.example_zh:'')+'</div>':'')+'</div><div class="meta"><span class="word-tag l'+x.level+'">'+LVL[x.level]+'</span><button class="word-del" onclick="delWord('+idx+')">✕</button></div></div>';
+    }
+    wordCount++;
+  }
+  if(!html)html='<div class="done-state"><div class="emoji">📭</div><h3>没有匹配的单词</h3></div>';
+  document.getElementById('list').innerHTML=html;
+
+  // Update pager
+  var pi=document.getElementById('page-info');if(pi)pi.textContent=listPage+' / '+totalPages;
+  var btns=document.querySelectorAll('.pager-btn');if(btns.length>=3){btns[0].disabled=listPage<=1;btns[1].disabled=listPage>=totalPages;}
+  var jp=document.getElementById('jump-page');if(jp){jp.max=totalPages;jp.value='';}
+}
+function prevPage(){if(listPage>1){listPage--;renderList();document.getElementById('list').scrollTop=0;}}
+function nextPage(){listPage++;renderList();document.getElementById('list').scrollTop=0;}
+function jumpPage(){var jp=document.getElementById('jump-page');var n=parseInt(jp.value);if(n>=1){listPage=n;renderList();document.getElementById('list').scrollTop=0;}}
+function delWord(i){if(!confirm('删除？'))return;var w=load();if(learnCur&&w[i]&&w[i].en===learnCur.en)learnCur=null;if(reviewCur&&w[i]&&w[i].en===reviewCur.en)reviewCur=null;w.splice(i,1);save(w);renderList();renderLearn();renderReview();}
+
+// ═══ ADD ═══
+function addWord(){
+  var en=document.getElementById('ae').value.trim();var zh=document.getElementById('az').value.trim();
+  if(!en||!zh){alert('英文和中文必填');return}
+  var w=load();if(w.some(function(x){return x.en.toLowerCase()===en.toLowerCase()})){alert('已存在');return}
+  var pos=document.getElementById('apos').value.trim()||'n.';
+  w.push({en:en,zh:zh,example:document.getElementById('ax').value.trim(),example_zh:document.getElementById('axz').value.trim(),phonetic:document.getElementById('ap').value.trim(),pos:pos,level:0,nextReview:0,timesReviewed:0});
+  save(w);['ae','az','ax','axz','ap','apos'].forEach(function(id){document.getElementById(id).value=''});document.getElementById('ae').focus();renderLearn();renderReview();renderList();
+}
+function resetAll(){
+  if(!confirm('重置全部？不可撤销！'))return;
+  var keys=[];for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k.indexOf('wv4_')===0)keys.push(k)}
+  keys.forEach(function(k){localStorage.removeItem(k)});learnCur=null;reviewCur=null;renderLearn();renderReview();renderList();
+}
+
+function toggleSettings(){
+  document.getElementById('settings').classList.toggle('show');
+  if(document.getElementById('settings').classList.contains('show')){renderHistoryStats();
+    setTimeout(populateVoices,100);document.getElementById('so-voice').value=selectedVoice;
+    document.getElementById('so-learn').value=learnDaily;document.getElementById('so-review').value=reviewDaily;document.getElementById('so-rate').value=ttsRate;
+  }
+}
+function onVoiceChange(v){saveVoice(v)}
+function onLearnChange(v){saveLearn(v)}
+function onRateChange(v){saveRate(parseFloat(v)||1.0)}
+
+
+function renderHistoryStats(){
+  var h=getHistory();var td=getTodayDetail();var el=document.getElementById('history-stats');if(!el)return;
+  var html='<div style="margin-bottom:4px;">📅 今日: 学习 '+h.today.learned+' 词 · 复习 '+h.today.reviewed+' 词</div>';
+  if(h.today.reviewed>0)html+='<div style="margin-bottom:4px;">✅ '+h.today.correct+' 认识 · 🟡 '+h.today.vague+' 模糊 · ❌ '+h.today.wrong+' 不认识</div>';
+  if(td.learned.length>0){html+='<div style="margin-top:6px;font-size:10px;color:var(--green);">📝 学习: '+td.learned.join(', ')+'</div>';}
+  if(td.reviewed.length>0){html+='<div style="margin-top:4px;font-size:10px;">🔄 复习: ';for(var i=0;i<td.reviewed.length;i++){var r=td.reviewed[i];var color=r.result==='认识'?'var(--green)':r.result==='模糊'?'var(--amber)':'var(--red)';html+='<span style="color:'+color+'">'+r.word+'('+r.result+')</span> ';}html+='</div>';}
+  html+='<div style="margin-top:8px;">━━━━━━━━━━</div>';
+  html+='<div style="margin-bottom:6px;font-weight:600;">📈 近7天</div>';
+  for(var i=0;i<h.last7.length;i++){var d=h.last7[i];html+='<div>'+d.date+': 学 '+d.s.learned+' · 复 '+d.s.reviewed+'</div>';}
+  html+='<div style="margin-top:6px;">━━━━━━━━━━</div>';
+  html+='<div style="margin-top:4px;">📊 总计: '+h.total.days+' 天 · 学 '+h.total.learned+' 词 · 复 '+h.total.reviewed+' 次</div>';
+  if(h.total.reviewed>0)html+='<div>掌握率: '+Math.round(h.total.correct/h.total.reviewed*100)+'% ('+h.total.correct+'/'+h.total.reviewed+')</div>';
+  el.innerHTML=html;
+}
+function init(){
+
+  if(window.speechSynthesis){
+    window.speechSynthesis.onvoiceschanged=function(){loadVoices();if(!selectedVoice&&cachedVoices.length>0){var b=cachedVoices.filter(function(v){return v.name.indexOf('Samantha')>=0});selectedVoice=b.length?b[0].name:cachedVoices[0].name;saveVoice(selectedVoice)}};
+    window.speechSynthesis.getVoices();var pl=document.getElementById('pane-learn');if(pl)pl.style.display='flex';setTimeout(function(){loadVoices();if(!selectedVoice&&cachedVoices.length>0){var b=cachedVoices.filter(function(v){return v.name.indexOf('Samantha')>=0});selectedVoice=b.length?b[0].name:cachedVoices[0].name;saveVoice(selectedVoice)}},500);
+  }
+  renderLearn();
+}
+document.getElementById('learn').innerHTML='<div class=done-state><div class=emoji>⏳</div><h3>加载中...</h3></div>';try{streak();init();}catch(e){document.getElementById('learn').innerHTML='<div class=done-state><div class=emoji>❌</div><h3>出错了</h3><p>'+e.message+'</p></div>';}
+</script>
+</body>
+</html>
